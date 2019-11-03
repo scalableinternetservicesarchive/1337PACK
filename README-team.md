@@ -18,3 +18,18 @@ to come up each time before you hit the issue. Instead, try to create the DB -
 This creates the database: app_developement and app_test - this is needed to run the app
 
 Make sure to add host: db and username: postgres in the config/database.yml file
+
+
+>> docker-compose run web rails generate scaffold Tweet message:string author:string
+
+to see the routes - 
+>> docker-compose run web rails routes
+
+OR 
+docker-compose run web /bin/bash 
+>> rails routes
+
+
+Change the migrate file and add the non-null conditions
+>> rails db:migrate
+

@@ -23,6 +23,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.ruby.settings.RubyModuleStructureConfigurable" />
   </component>
   <component name="RubyModuleManagerSettings">
     <option name="blackListedRootsPaths">
@@ -55,7 +56,7 @@
       <option name="presentableId" value="Default" />
       <updated>1572552652650</updated>
       <workItem from="1572552654139" duration="2604000" />
-      <workItem from="1572716080982" duration="4458000" />
+      <workItem from="1572716080982" duration="9721000" />
     </task>
     <servers />
   </component>
