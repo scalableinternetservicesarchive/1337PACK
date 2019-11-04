@@ -47,4 +47,4 @@ Quick tips while modifying the tables -
 
 To create a scaffolding:
 `rails generate scaffold User username:string password:string`
-Scaffolding automatically adds an event id to the table, no need to create that
+Scaffolding automatically adds an id to the table, no need to create that
