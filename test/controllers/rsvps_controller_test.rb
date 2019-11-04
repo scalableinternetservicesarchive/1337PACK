@@ -17,7 +17,7 @@ class RsvpsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create rsvp" do
     assert_difference('Rsvp.count') do
-      post rsvps_url, params: { rsvp: {  } }
+      post rsvps_url, params: { rsvp: { answer: @rsvp.answer } }
     end
 
     assert_redirected_to rsvp_url(Rsvp.last)
@@ -34,7 +34,7 @@ class RsvpsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update rsvp" do
-    patch rsvp_url(@rsvp), params: { rsvp: {  } }
+    patch rsvp_url(@rsvp), params: { rsvp: { answer: @rsvp.answer } }
     assert_redirected_to rsvp_url(@rsvp)
   end
 

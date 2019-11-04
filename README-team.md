@@ -48,3 +48,18 @@ Quick tips while modifying the tables -
 To create a scaffolding:
 `rails generate scaffold User username:string password:string`
 Scaffolding automatically adds an id to the table, no need to create that
+
+
+###### **CREATE MODELS**
+
+`rails g scaffold User username:string password:string
+rails g scaffold Comment
+rails g scaffold Invite
+rails g scaffold Rsvp answer:bool
+rails g scaffold Event venue:string 
+`
+
+To start afresh, destroy the scaffold using - 
+`
+rails destroy scaffold User
+`

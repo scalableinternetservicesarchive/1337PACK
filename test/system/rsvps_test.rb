@@ -14,6 +14,7 @@ class RsvpsTest < ApplicationSystemTestCase
     visit rsvps_url
     click_on "New Rsvp"
 
+    fill_in "Answer", with: @rsvp.answer
     click_on "Create Rsvp"
 
     assert_text "Rsvp was successfully created"
@@ -24,6 +25,7 @@ class RsvpsTest < ApplicationSystemTestCase
     visit rsvps_url
     click_on "Edit", match: :first
 
+    fill_in "Answer", with: @rsvp.answer
     click_on "Update Rsvp"
 
     assert_text "Rsvp was successfully updated"

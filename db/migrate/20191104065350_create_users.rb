@@ -5,7 +5,6 @@ class CreateUsers < ActiveRecord::Migration[6.0]
       t.string :password
 
       t.timestamps
-      t.references :events, foreign_key: true
     end
   end
 end
