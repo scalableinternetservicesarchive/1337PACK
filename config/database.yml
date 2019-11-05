@@ -11,8 +11,7 @@
 #       Choose the win32 build.
 #       Install PostgreSQL and put its /bin directory on your path.
 #
-# Configure Using Gemfile
-# gem 'pg'
+# Configure Using Gemfile # gem 'pg'
 #
 default: &default
   adapter: postgresql
@@ -87,3 +86,4 @@ production:
   username:  <%= ENV['RDS_USERNAME'] %>
   port:  <%= ENV['RDS_PORT'] %>
   password: <%= ENV['RDS_PASSWORD'] %>
+
