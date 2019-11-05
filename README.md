@@ -55,7 +55,7 @@ Creating a scaffolding takes care of initializing the model and creating respect
 Scaffolding automatically adds an id to the table, no need to create that 
 
 
-###### **CREATE MODELS**
+###### **CREATE MODELS** 
 ```
 rails g scaffold User username:string password:string  
 rails g scaffold Comment 
