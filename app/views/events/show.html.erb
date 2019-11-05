@@ -1,8 +1,30 @@
 <p id="notice"><%= notice %></p>
 
 <p>
+  <strong>Host:</strong>
+  <%= @event.host %>
+</p>
+<p>
+  <strong>Title:</strong>
+  <%= @event.title %>
+</p>
+<p>
+  <strong>Description:</strong>
+  <%= @event.description %>
+</p>
+
+<p>
   <strong>Venue:</strong>
   <%= @event.venue %>
+</p>
+
+<p>
+  <strong>Start Time:</strong>
+  <%= @event.start_time %>
+</p>
+<p>
+  <strong>End Time:</strong>
+  <%= @event.end_time %>
 </p>
 
 <%= link_to 'Edit', edit_event_path(@event) %> |
