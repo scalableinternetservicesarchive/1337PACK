@@ -74,3 +74,10 @@ To create a new migration file
 
 After modifying the models each time, run:  
 `rails db:migrate`
+
+
+Elastic Beanstalk
+
+```
+eb create -db.engine postgres -db.i db.t3.micro -db.user u --envvars SECRET_KEY_BASE=RANDOM_SECRET --single 1337PACK
+``
