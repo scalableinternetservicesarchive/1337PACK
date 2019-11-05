@@ -51,8 +51,8 @@ Keep in mind that with every change made to the migration files, migration has t
 Also, a new migration file needs to be created for every migration.  
 
 Creating a scaffolding takes care of initializing the model and creating respective views   
-`rails generate scaffold User username:string password:string`
-Scaffolding automatically adds an id to the table, no need to create that  
+`rails generate scaffold User username:string password:string`  
+Scaffolding automatically adds an id to the table, no need to create that 
 
 
 ###### **CREATE MODELS**
@@ -63,7 +63,6 @@ rails g scaffold Invite
 rails g scaffold Rsvp answer:boolean
 rails g scaffold Event venue:string
 ```
-
 
 To start afresh, destroy the scaffold using -  
 `
