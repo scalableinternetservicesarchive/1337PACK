@@ -3,7 +3,9 @@
 one:
   content: MyString
   username: MyString
+  parent_id: 1
 
 two:
   content: MyString
   username: MyString
+  parent_id: 1
