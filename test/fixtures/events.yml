@@ -1,7 +1,19 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  venue: MyString
+  host_name: MyString
+  location_name: MyString
+  street_address: MyString
+  start_time: 2019-11-08 20:47:00
+  end_time: 2019-11-08 20:47:00
+  title: MyString
+  description: MyString
 
 two:
-  venue: MyString
+  host_name: MyString
+  location_name: MyString
+  street_address: MyString
+  start_time: 2019-11-08 20:47:00
+  end_time: 2019-11-08 20:47:00
+  title: MyString
+  description: MyString
