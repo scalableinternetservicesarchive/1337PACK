@@ -32,7 +32,9 @@ class Users extends React.Component {
 	      <div className="card mb-4">
 		<div className="card-body">
 		  <h5 className="card-title">{user.first_name} {user.last_name}</h5>
+		  <Link to={`/user/${user.id}`} className="btn btn-dark">
 		    View User
+		  </Link>
 		</div>
 	      </div>
 	    </div>
