@@ -1,9 +1,12 @@
 class RsvpsController < ApplicationController
     before_action :set_rsvp, only: [:show, :edit, :update, :destroy]
+    # TODO: Remove this check
+    skip_before_action :verify_authenticity_token
 
     # POST /rsvp
     def create
-        @rsvp = Rsvp.new(rsvp_params.merge({user_id: current_user.id, event_id: rsvp_params[:event_id]}))
+        # TODO: Take the user id from the current logged in user(do we even need that?)
+        @rsvp = Rsvp.new(rsvp_params.merge({event_id: rsvp_params[:event_id], user_id: rsvp_params[:user_id]}))
         if @rsvp.save
             render json: @rsvp, status: :created
         else
@@ -23,7 +26,7 @@ class RsvpsController < ApplicationController
 
     # PUT/Patch /rsvp/{id}
     def update
-        if @event.update(rsvp_params)
+        if @rsvp.update(rsvp_params)
             head :no_content
         else
             render json: @rsvp.errors, status: :unprocessable_entity
@@ -44,6 +47,6 @@ class RsvpsController < ApplicationController
     end
 
     def rsvp_params
-        params.require(:rsvp).permit(:response, :num_guests, :guest_name, :event_id, :guest_id)
+        params.permit(:response, :num_guests, :guest_name, :event_id, :user_id)
     end
 end
