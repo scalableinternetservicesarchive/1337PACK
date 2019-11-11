@@ -10,7 +10,7 @@ class Signup extends React.Component {
 	    last_name: "",
 	    email: "",
 	    password: "",
-	    password_confirmation: ""
+	    password_confirmation: "",
 	};
 
 	this.onChange = this.onChange.bind(this);
@@ -24,7 +24,7 @@ class Signup extends React.Component {
     onSubmit(event) {
 	event.preventDefault();
 	const url = "/users/create";
-
+	
 	// protect against CSRF attacks
 	const token = document.querySelector('meta[name="csrf-token"]').content;
 	fetch(url, {
@@ -48,6 +48,21 @@ class Signup extends React.Component {
 	);
     }
 
+    componentDidMount() {
+	window.addEventListener('load', function() {
+	    var forms = document.getElementsByClassName('needs-validation');
+	    var validation = Array.prototype.filter.call(forms, function(form) {
+		form.addEventListener('submit', function(event) {
+		    if (form.checkValidity() === false) {
+			event.preventDefault();
+			event.stopPropagation();
+		    }
+		    form.classList.add('was-validated');
+		}, false);
+	    });
+	}, false);
+    }
+    
     render() {
 	return (
 	    <div className="container mt-5">
@@ -56,54 +71,70 @@ class Signup extends React.Component {
 		  <h1 className="mb-5">
 		    Join 1337PACK
 		  </h1>
-		  <form onSubmit={this.onSubmit}>
+		  <form className="needs-validation" noValidate onSubmit={this.onSubmit}>
 		    <div className="form-group">
-		      <label for="inputEmail">Email Address</label>
+		      <label htmlFor="inputEmail">Email Address</label>
 		      <input type="email"
 			     name="email"
 			     className="form-control"
 			     id="inputEmail"
 			     required
 			     onChange={this.onChange}/>
+		      <div className="invalid-feedback">
+			Invalid email
+		      </div>
 		    </div>
 		    <div className="form-group">
-		      <label for="inputPassword">Password</label>
+		      <label htmlFor="inputPassword">Password</label>
 		      <input type="password"
 			     name="password"
 			     className="form-control"
 			     id="inputPassword"
-			     required
+			     required minLength="6"
+			     aria-describedby="passwordHelp"
 			     onChange={this.onChange}/>
+		      <div className="invalid-feedback">
+			Password too short
+		      </div>
 		    </div>
 		    <div className="form-group">
-		      <label for="inputPasswordConfirmation">Confirm Password</label>
+		      <label htmlFor="inputPasswordConfirmation">Confirm Password</label>
 		      <input type="password"
 			     name="password_confirmation"
 			     className="form-control"
 			     id="inputPasswordConfirmation"
-			     required
+			     required pattern={this.state.password}
 			     onChange={this.onChange}/>
+		      <div className="invalid-feedback">
+			Password does not match
+		      </div>
 		      <small id="passwordHelp" className="form-text text-muted">
 			Minimum password length: 6 characters.
 		      </small>
 		    </div>
 		    <div className="form-group">
-		      <label for="inputFirstName">First Name</label>
+		      <label htmlFor="inputFirstName">First Name</label>
 		      <input type="text"
 			     name="first_name"
 			     className="form-control"
 			     id="inputFirstName"
 			     required
 			     onChange={this.onChange}/>
+		      <div className="invalid-feedback">
+			Required
+		      </div>
 		    </div>
 		    <div className="form-group">
-		      <label for="inputLastName">Last Name</label>
+		      <label htmlFor="inputLastName">Last Name</label>
 		      <input type="text"
 			     name="last_name"
 			     className="form-control"
 			     id="inputLastName"
 			     required
 			     onChange={this.onChange}/>
+		      <div className="invalid-feedback">
+			Required
+		      </div>
 		    </div>
 		    <button type="submit" className="btn btn-dark mt-3">
 		      Sign Me Up
