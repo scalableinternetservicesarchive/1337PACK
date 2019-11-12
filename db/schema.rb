@@ -46,8 +46,8 @@ ActiveRecord::Schema.define(version: 2019_11_09_001228) do
     t.string "guest_email"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.bigint "events_id"
-    t.index ["events_id"], name: "index_invites_on_events_id"
+    t.bigint "event_id"
+    t.index ["event_id"], name: "index_invites_on_event_id"
   end
 
   create_table "rsvps", force: :cascade do |t|
