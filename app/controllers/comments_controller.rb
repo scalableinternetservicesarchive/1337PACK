@@ -1,8 +1,12 @@
 class CommentsController < ApplicationController
+    # do :set_comment function only just before show, edit ... actions
     before_action :set_comment, only: [:show, :edit, :update, :destroy]
+    # allow following to diable authentification
+    skip_before_action :verify_authenticity_token
 
     # POST /comment
     def create
+        # require user_id, event_id
         @comment = Comment.new(params.merge({user_id: current_user.id}))
         if @comment.save
             render json: @comment, status: :created
@@ -21,6 +25,7 @@ class CommentsController < ApplicationController
         render json: comment.find(params[:id])
     end
 
+    # update content if failed show error message
     # PUT/Patch /comment/{id}
     def update
         if @comment.update(params)
@@ -45,6 +50,6 @@ class CommentsController < ApplicationController
 
         def comment_params
             # params needed for create a comment
-            params.require(:comment).permit(:id, :event_id, :user_id, :content, :create_time, :last_edit_time)
+            params.require(:comment).permit(:id, :event_id, :user_id, :user_name, :content, :create_at, :last_update_at)
         end
 end
