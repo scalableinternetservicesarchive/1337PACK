@@ -23,7 +23,7 @@ class CommentsController < ApplicationController
     # GET /comment/{id}
     def show
         to_render = [Comment.find(comment_params[:id])]
-        to_render += Comment.where(parent_id: comment_params[:id])
+        to_render += Comment.where(parent_id: comment_params[:id]).order("created_at ASC")
         render json: to_render
     end
 
