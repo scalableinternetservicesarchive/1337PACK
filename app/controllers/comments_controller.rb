@@ -27,12 +27,6 @@ class CommentsController < ApplicationController
         render json: to_render
     end
 
-    # GET /comment/event/{id}
-    def event_show
-        #TODO: show all comments related to given event
-
-    end
-
     # update content if failed show error message
     # PUT/Patch /comment/{id}
     def update
