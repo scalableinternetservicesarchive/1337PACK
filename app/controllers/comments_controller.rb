@@ -6,8 +6,8 @@ class CommentsController < ApplicationController
 
     # POST /comment
     def create
-        # require user_id, event_id
-        @comment = Comment.new(params.merge({user_id: current_user.id}))
+        # require event_id, check if there is current user
+        @comment = Comment.new(comment_params.merge({user_id: comment_params[:user_id]}))
         if @comment.save
             render json: @comment, status: :created
         else
@@ -17,26 +17,36 @@ class CommentsController < ApplicationController
 
     # GET /comments
     def index
-        render json: comment.all
+        render json: Comment.all
     end
 
     # GET /comment/{id}
     def show
-        render json: comment.find(params[:id])
+        to_render = [Comment.find(comment_params[:id])]
+        to_render += Comment.where(parent_id: comment_params[:id])
+        render json: to_render
+    end
+
+    # GET /comment/event/{id}
+    def event_show
+        #TODO: show all comments related to given event
+
     end
 
     # update content if failed show error message
     # PUT/Patch /comment/{id}
     def update
-        if @comment.update(params)
+        if @comment.update(comment_params)
             head :no_content
         else
             render json: @comment.errors, status: :unprocessable_entity
         end
     end
 
+    # DELETE /comment/{id}
     def destroy
         if @comment.destroy
+            Comment.where(parent_id: comment_params[:id]).destroy_all
             head :no_content
         else
             render json: @comment.errors, status: :unprocessable_entity
@@ -45,11 +55,11 @@ class CommentsController < ApplicationController
 
     private
         def set_comment
-            @comment = Comment.find(params[:id])
+            @comment = Comment.find(comment_params[:id])
         end
 
         def comment_params
             # params needed for create a comment
-            params.require(:comment).permit(:id, :event_id, :user_id, :user_name, :content, :create_at, :last_update_at)
+            params.permit(:id, :event_id, :user_id, :user_name, :content, :parent_id)
         end
 end
