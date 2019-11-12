@@ -1,5 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
 
 class User extends React.Component {
     constructor(props) {
@@ -21,8 +24,12 @@ class User extends React.Component {
 	} = this.props;
 
 	const url = `/users/show/${id}`;
-
-	fetch(url).then(
+	const token = cookies.get('JWT');
+	const headers = {};
+	if (token !== null && token !== undefined) {
+	    headers.Authorization = `Bearer ${token}`;
+	};
+	fetch(url, { headers: headers }).then(
 	    response => {
 		if (response.ok) {
 		    return response.json();
