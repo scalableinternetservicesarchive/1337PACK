@@ -139,28 +139,36 @@ At this point you *should* be able to access the “Yay! You’re on Rails!” p
 
 
 
-# README
+### Other
 
+To start afresh, destroy the scaffold using -  
+`
+rails destroy scaffold User
+`
+Steps to create the models - 
+```
+rails g model user email:string password_digest:string first_name:string last_name:string
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+rails g model comment content:string username:string parent_id:integer
 
-Things you may want to cover:
+rails g model event host_name:string location_name:string street_address:string start_time:datetime end_time:datetime title:string description:string
 
-* Ruby version
+rails g model invite message:string guest_email:string
 
-* System dependencies
+rails g model rsvp response:string num_guests:integer guest_name:string
+```  
 
-* Configuration
+To create a new migration file  
+`
+rails g migration AddAssociations
+`  
 
-* Database creation
+After modifying the models each time, run:  
+`
+rake db:migrate
+`
 
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Elastic Beanstalk  
+`
+eb create -db.engine postgres -db.i db.t3.micro -db.user u --envvars SECRET_KEY_BASE=RANDOM_SECRET --single 1337PACK
+`  
