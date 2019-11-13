@@ -5,7 +5,6 @@ class RsvpsController < ApplicationController
 
     # POST /rsvp
     def create
-        # TODO: Take the user id from the current logged in user(do we even need that?)
         @rsvp = Rsvp.new(rsvp_params.merge({event_id: rsvp_params[:event_id], user_id: rsvp_params[:user_id]}))
         if @rsvp.save
             render json: @rsvp, status: :created
@@ -16,7 +15,7 @@ class RsvpsController < ApplicationController
 
     # GET /rsvp
     def index
-        render json: Rsvp.all
+        render json: Rsvp.where(user_id: rsvp_params['user_id'])
     end
 
     # GET /rsvp/{id}
