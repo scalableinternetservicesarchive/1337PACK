@@ -1,28 +1,50 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import useForm from "react-hook-form";
+import { Link, withRouter } from "react-router-dom";
+import Cookies from 'universal-cookie';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import TextField from '@material-ui/core/TextField';
+import Grid from '@material-ui/core/Grid';
+import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
+import Container from '@material-ui/core/Container';
 
+import Navbar from './Navbar';
 
-class Signup extends React.Component {
-    constructor(props) {
-	super(props);
-	this.state = {
-	    first_name: "",
-	    last_name: "",
-	    email: "",
-	    password: "",
-	    password_confirmation: "",
-	};
+const useStyles = makeStyles(theme => ({
+    '@global': {
+        body: {
+            backgroundColor: theme.palette.common.white,
+	},
+    },
+    paper: {
+        marginTop: theme.spacing(12),
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+    },
+    avatar: {
+        margin: theme.spacing(1),
+        backgroundColor: theme.palette.secondary.main,
+    },
+    form: {
+        width: '90%',
+        marginTop: theme.spacing(3),
+    },
+    submit: {
+        margin: theme.spacing(3, 0, 2),
+    },
+}));
 
-	this.onChange = this.onChange.bind(this);
-	this.onSubmit = this.onSubmit.bind(this);
-    }
+const EMAIL_REGEX = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
 
-    onChange(event) {
-	this.setState({ [event.target.name]: event.target.value });
-    }
+function Signup(props) {
+    const { register, handleSubmit, errors, watch } = useForm();
 
-    onSubmit(event) {
-	event.preventDefault();
+    const onSubmit = data => {
 	const url = "/users/create";
 	
 	// protect against CSRF attacks
@@ -33,7 +55,7 @@ class Signup extends React.Component {
 		"X-CSRF-Token": token,
 		"Content-Type": "application/json"
 	    },
-	    body: JSON.stringify(this.state)
+	    body: JSON.stringify(data)
 	}).then(
 	    response => {
 		if (response.ok) {
@@ -42,113 +64,131 @@ class Signup extends React.Component {
 		throw new Error("Network response was not ok.");
 	    }
 	).then(
-	    response => this.props.history.push('/')
+	    response => props.history.push('/')
 	).catch(
 	    error => console.log(error.message)
 	);
-    }
+    };
 
-    componentDidMount() {
-	window.addEventListener('load', function() {
-	    var forms = document.getElementsByClassName('needs-validation');
-	    var validation = Array.prototype.filter.call(forms, function(form) {
-		form.addEventListener('submit', function(event) {
-		    if (form.checkValidity() === false) {
-			event.preventDefault();
-			event.stopPropagation();
-		    }
-		    form.classList.add('was-validated');
-		}, false);
-	    });
-	}, false);
-    }
+    const classes = useStyles();
     
-    render() {
-	return (
-	    <div className="container mt-5">
-	      <div className="row">
-		<div className="col-sm-12 col-lg-6 offset-lg-3">
-		  <h1 className="mb-5">
-		    Join 1337PACK
-		  </h1>
-		  <form className="needs-validation" noValidate onSubmit={this.onSubmit}>
-		    <div className="form-group">
-		      <label htmlFor="inputEmail">Email Address</label>
-		      <input type="email"
-			     name="email"
-			     className="form-control"
-			     id="inputEmail"
-			     required
-			     onChange={this.onChange}/>
-		      <div className="invalid-feedback">
-			Invalid email
-		      </div>
-		    </div>
-		    <div className="form-group">
-		      <label htmlFor="inputPassword">Password</label>
-		      <input type="password"
-			     name="password"
-			     className="form-control"
-			     id="inputPassword"
-			     required minLength="6"
-			     aria-describedby="passwordHelp"
-			     onChange={this.onChange}/>
-		      <div className="invalid-feedback">
-			Password too short
-		      </div>
-		    </div>
-		    <div className="form-group">
-		      <label htmlFor="inputPasswordConfirmation">Confirm Password</label>
-		      <input type="password"
-			     name="password_confirmation"
-			     className="form-control"
-			     id="inputPasswordConfirmation"
-			     required pattern={this.state.password}
-			     onChange={this.onChange}/>
-		      <div className="invalid-feedback">
-			Password does not match
-		      </div>
-		      <small id="passwordHelp" className="form-text text-muted">
-			Minimum password length: 6 characters.
-		      </small>
-		    </div>
-		    <div className="form-group">
-		      <label htmlFor="inputFirstName">First Name</label>
-		      <input type="text"
-			     name="first_name"
-			     className="form-control"
-			     id="inputFirstName"
-			     required
-			     onChange={this.onChange}/>
-		      <div className="invalid-feedback">
-			Required
-		      </div>
-		    </div>
-		    <div className="form-group">
-		      <label htmlFor="inputLastName">Last Name</label>
-		      <input type="text"
-			     name="last_name"
-			     className="form-control"
-			     id="inputLastName"
-			     required
-			     onChange={this.onChange}/>
-		      <div className="invalid-feedback">
-			Required
-		      </div>
-		    </div>
-		    <button type="submit" className="btn btn-dark mt-3">
-		      Sign Me Up
-		    </button>
-		    <Link to="/" className="btn btn-link mt-3">
-		      Cancel
+    return (
+	<div>
+          <CssBaseline />
+          <Navbar/>
+          <Container component="main" maxWidth="xs">
+            <div className={classes.paper}>
+              <Avatar className={classes.avatar}>
+                <LockOutlinedIcon />
+              </Avatar>
+              <Typography component="h1" variant="h5">
+                Sign up
+              </Typography>
+              <form className={classes.form}
+                    noValidate
+                    onSubmit={handleSubmit(onSubmit)}>
+		<Grid container spacing={2}>
+		  <Grid item xs={12} sm={6}>
+		    <TextField variant="outlined"
+			       autoComplete="fname"
+			       name="first_name" id="first_name"
+			       required fullWidth
+			       label="First Name"
+			       autoFocus
+			       inputRef={register({
+				   required: 'First name required',
+				   maxLength: {
+				       value: 25,
+				       message: 'Maximum length 25',
+				   },
+			       })}/>
+		    {errors.first_name && errors.first_name.message}
+		  </Grid>
+		  
+		  <Grid item xs={12} sm={6}>
+		    <TextField variant="outlined"
+			       autoComplete="lname"
+			       name="last_name" id="last_name"
+			       required fullWidth
+			       label="Last Name"
+			       autoFocus
+			       inputRef={register({
+				   required: 'Last name required',
+				   maxLength: {
+				       value: 25,
+				       message: 'Maximum length 25',
+				   },
+			       })}/>
+		    {errors.last_name && errors.last_name.message}
+		  </Grid>
+
+		  <Grid item xs={12}>
+		    <TextField variant="outlined" margin="normal"
+                               required fullWidth
+                               id="email" name="email"
+                               label="Email Address"
+                               autoComplete="email"
+                               autoFocus
+                               inputRef={register({
+				   required: 'Email required',
+				   pattern: {
+				       value: EMAIL_REGEX,
+				       message: 'Invalid email',
+				   },
+			       })}/>
+		    {errors.email && errors.email.message}
+		  </Grid>
+		  
+		  <Grid item xs={12}>
+		    <TextField variant="outlined" margin="normal"
+                               required fullWidth
+                               id="password" name="password"
+                               label="Password"
+                               type="password"
+                               autoComplete="current-password"
+                               inputRef={register({
+				   required: 'Password required',
+				   minLength: {
+				       value: 6,
+				       message: 'Minimum length 6',
+				   },
+			       })}/>
+		    {errors.password && errors.password.message}
+		  </Grid>
+		  
+		  <Grid item xs={12}>
+		    <TextField variant="outlined" margin="normal"
+                               required fullWidth
+                               id="password_confirmation"
+			       name="password_confirmation"
+                               label="Confirm Password"
+                               type="password"
+                               inputRef={register({
+				   validate: (val) => val === watch('password')
+			       })}/>
+		    {errors.password_confirmation && 'Password mismatch'}
+		  </Grid>
+		</Grid>
+		  
+		<Button variant="contained"
+			type="submit"
+			fullWidth
+			color="primary"
+			className={classes.submit}>
+		  Sign Up
+		</Button>
+		<Grid container justify="flex-end">
+		  <Grid item>
+		    <Link to="/login" variant="body2">
+		      Already have an account? Sign in
 		    </Link>
-		  </form>
-		</div>
-	      </div>
+		  </Grid>
+		</Grid>
+              </form>
 	    </div>
-	);
-    }
-}
+	  </Container>
+	</div>
+    );
+};
 
-
-export default Signup;
+export default withRouter(Signup);

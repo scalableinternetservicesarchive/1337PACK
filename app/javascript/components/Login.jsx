@@ -1,29 +1,52 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import useForm from "react-hook-form";
+import { Link, withRouter } from "react-router-dom";
 import Cookies from 'universal-cookie';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import TextField from '@material-ui/core/TextField';
+import Grid from '@material-ui/core/Grid';
+import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
+import Container from '@material-ui/core/Container';
+
+import Navbar from './Navbar';
+
 
 const cookies = new Cookies();
 
-class Login extends React.Component {
-    constructor(props) {
-	super(props);
-	this.state = {
-	    email: "",
-	    password: "",
-	};
+const useStyles = makeStyles(theme => ({
+    '@global': {
+	body: {
+	    backgroundColor: theme.palette.common.white,
+	},
+    },
+    paper: {
+	marginTop: theme.spacing(12),
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+    },
+    avatar: {
+	margin: theme.spacing(1),
+	backgroundColor: theme.palette.secondary.main,
+    },
+    form: {
+	width: '90%',
+	marginTop: theme.spacing(3),
+    },
+    submit: {
+	margin: theme.spacing(3, 0, 2),
+    },
+}));
 
-	this.onChange = this.onChange.bind(this);
-	this.onSubmit = this.onSubmit.bind(this);
-    }
+function Login(props) {
+    const { register, handleSubmit, errors } = useForm();
 
-    onChange(event) {
-	this.setState({ [event.target.name]: event.target.value });
-    }
-
-    onSubmit(event) {
-	event.preventDefault();
+    const onSubmit = data => {
 	const url = "/auth/login";
-	
 	// protect against CSRF attacks
 	const token = document.querySelector('meta[name="csrf-token"]').content;
 	fetch(url, {
@@ -32,7 +55,7 @@ class Login extends React.Component {
 		"X-CSRF-Token": token,
 		"Content-Type": "application/json"
 	    },
-	    body: JSON.stringify({ user: this.state })
+	    body: JSON.stringify({ user: data })
 	}).then(
 	    response => {
 		if (response.ok) {
@@ -43,70 +66,67 @@ class Login extends React.Component {
 	).then(
 	    response => {
 		cookies.set('JWT', response.token, { path: '/' });
+		cookies.set('UID', response.uid, { path: '/' });
 		cookies.set('FullName', response.first_name + ' ' + response.last_name, { path: '/' });
-		this.props.history.push('/');
+		props.history.push('/');
 	    }
 	).catch(
 	    error => console.log(error.message)
 	);
-    }
 
-    componentDidMount() {
-	window.addEventListener('load', function() {
-	    var forms = document.getElementsByClassName('needs-validation');
-	    var validation = Array.prototype.filter.call(forms, function(form) {
-		form.addEventListener('submit', function(event) {
-		    if (form.checkValidity() === false) {
-			event.preventDefault();
-			event.stopPropagation();
-		    }
-		    form.classList.add('was-validated');
-		}, false);
-	    });
-	}, false);
-    }
+    };
     
-    render() {
-	return (
-	    <div className="container mt-5">
-	      <div className="row">
-		<div className="col-sm-12 col-lg-6 offset-lg-3">
-		  <h1 className="mb-5">
-		    Login
-		  </h1>
-		  <form className="needs-validation" noValidate onSubmit={this.onSubmit}>
-		    <div className="form-group">
-		      <label htmlFor="inputEmail">Email Address</label>
-		      <input type="email"
-			     name="email"
-			     className="form-control"
-			     id="inputEmail"
-			     required
-			     onChange={this.onChange}/>
-		      <div className="invalid-feedback">
-			Invalid email
-		      </div>
-		    </div>
-		    <div className="form-group">
-		      <label htmlFor="inputPassword">Password</label>
-		      <input type="password"
-			     name="password"
-			     className="form-control"
-			     id="inputPassword"
-			     required minLength="6"
-			     aria-describedby="passwordHelp"
-			     onChange={this.onChange}/>
-		    </div>
-		    <button type="submit" className="btn btn-dark mt-3">
-		      Login
-		    </button>
-		  </form>
-		</div>
-	      </div>
+    const classes = useStyles();
+    
+    return (
+	<div>
+	  <CssBaseline />
+	  <Navbar/>
+	  <Container component="main" maxWidth="xs">
+	    <div className={classes.paper}>
+	      <Avatar className={classes.avatar}>
+		<LockOutlinedIcon />
+	      </Avatar>
+	      <Typography component="h1" variant="h5">
+		Log in
+	      </Typography> 
+	      <form className={classes.form}
+		    noValidate
+		    onSubmit={handleSubmit(onSubmit)}>
+		<TextField variant="outlined" margin="normal"
+			   required fullWidth
+			   id="email" name="email"
+			   label="Email Address"
+			   autoComplete="email"
+			   autoFocus
+			   inputRef={register({ required: true })}/>
+		{errors.email && 'Email is required.'}
+		<TextField variant="outlined" margin="normal"
+			   required fullWidth
+			   id="password" name="password"
+			   label="Password"
+			   type="password"
+			   autoComplete="current-password"
+			   inputRef={register}/>
+		<Button type="submit"
+			fullWidth
+			variant="contained"
+			color="primary"
+			className={classes.submit}>
+		  Log In
+		</Button>
+		<Grid container>
+		  <Grid item xs>
+		    <Link to="/signup" variant="body2">
+		      {"Don't have an account? Sign up"}
+		    </Link>
+		  </Grid>
+		</Grid>
+	      </form>
 	    </div>
-	);
-    }
-}
+	  </Container>
+	</div>
+    );
+};
 
-
-export default Login;
+export default withRouter(Login);

@@ -7,7 +7,8 @@ class AuthenticationController < ApplicationController
       render json: {
                token: token,
                first_name: @user.first_name,
-               last_name: @user.last_name
+               last_name: @user.last_name,
+               uid: @user.id,
              }
     else
       # login error
