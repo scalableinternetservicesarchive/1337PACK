@@ -1,4 +1,5 @@
 import React from "react";
+import Cookies from 'universal-cookie';
 import useForm from "react-hook-form";
 import { Link, withRouter } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
@@ -13,6 +14,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Slide from '@material-ui/core/Slide';
+import Snackbar from '@material-ui/core/Snackbar';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -21,6 +23,16 @@ import {
     MuiPickersUtilsProvider,
     DateTimePicker
 } from '@material-ui/pickers';
+
+const cookies = new Cookies();
+
+function getUID() {
+    if (cookies.get('JWT') == null) {
+	return null;
+    } else {
+	return cookies.get('UID');
+    };
+};
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -58,6 +70,7 @@ const defaultValues = {
 function EventCompose(props) {
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
+    const [snackbarOpen, setSnackbarOpen] = React.useState(false);
     const { register, handleSubmit, errors, getValues, setValue } = useForm({
 	defaultValues
     });
@@ -70,8 +83,39 @@ function EventCompose(props) {
 	setOpen(false);
     };
 
+    const handleSnackbarClose = () => {
+	setSnackbarOpen(false);
+    };
+
     const onSubmit = data => {
+	const uid = getUID();
+	if (uid !== null) {
+	    data.user_id = uid;
+	}
 	console.log(data);
+	const url = "events"
+	const token = document.querySelector('meta[name="csrf-token"]').content;
+        fetch(url, {
+            method: "POST",
+	    headers: {
+		"X-CSRF-Token": token,
+		"Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        }).then(
+            response => {
+                if (response.ok) {
+		    setOpen(false);
+		    setSnackbarOpen(true);
+                    return response.json();
+                }
+                throw new Error("Network response was not ok.");
+            }
+        ).then(
+            response => props.history.push('/')
+        ).catch(
+            error => console.log(error.message)
+        ); 
     };
 
     const handleDateChange = date => {
@@ -86,6 +130,14 @@ function EventCompose(props) {
     
     return (
 	<div>
+	  <Snackbar anchorOrigin={{
+			vertical: 'bottom',
+			horizontal: 'left',
+		    }}
+		    open={snackbarOpen}
+		    autoHideDuration={2000}
+		    onClose={handleSnackbarClose}
+		    message='New event posted'/>
 	  {props.onDrawer ? (
 	      <ListItem button key='Post Event'
 			onClick={handleClickOpen}>
