@@ -1,8 +1,4 @@
 Rails.application.routes.draw do
-  get 'users/index'
-  post 'users/create'
-  get 'users/show/:id', to: 'users#show'
-  delete 'users/destory/:id', to: 'users#destroy'
   post 'auth/login', to: 'authentication#login'
   root 'home#index'
   get '/*path' => 'home#index'
