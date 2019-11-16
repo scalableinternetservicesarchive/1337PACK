@@ -17,7 +17,12 @@ class CommentsController < ApplicationController
 
     # GET /comments
     def index
-        render json: Comment.all
+        if comment_params.key?("event_id")
+            to_render = Comment.where(event_id: comment_params[:event_id]).order("created_at ASC")
+        else:
+            to_render = Comment.all
+        end
+        render json: to_render
     end
 
     # GET /comment/{id}
