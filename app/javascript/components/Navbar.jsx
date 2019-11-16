@@ -125,7 +125,7 @@ function Navbar(props) {
 	setLoggedIn(false);
 	setUsername('');
 	setUID(null);
-	props.history.push('/');
+	setAnchorEl(false);
     };
 
     React.useEffect(() => {
@@ -134,7 +134,7 @@ function Navbar(props) {
 	    setUsername(cookies.get('FullName'));
 	    setUID(cookies.get('UID'));
 	};
-    }, [cookies])
+    }, [cookies]);
 
     return (
 	<div className={classes.root}>

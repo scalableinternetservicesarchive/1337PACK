@@ -26,7 +26,6 @@ class EventsController < ApplicationController
             # return 10 last recently created events
             render json: Event.order("updated_at DESC").limit(10)
         end
-        render json: Event.all
     end
 
     # GET /event/{id}

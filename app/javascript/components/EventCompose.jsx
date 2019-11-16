@@ -1,7 +1,7 @@
 import React from "react";
 import Cookies from 'universal-cookie';
 import useForm from "react-hook-form";
-import { Link, withRouter } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
 import AppBar from '@material-ui/core/AppBar';
@@ -93,7 +93,7 @@ function EventCompose(props) {
 	    data.user_id = uid;
 	}
 	console.log(data);
-	const url = "events"
+	const url = "events";
 	const token = document.querySelector('meta[name="csrf-token"]').content;
         fetch(url, {
             method: "POST",

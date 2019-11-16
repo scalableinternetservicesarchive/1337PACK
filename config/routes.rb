@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  get 'users/index'
+  get 'users/show/:id', to: 'users#show'
+  get 'events/index'
+  get 'events/show/:id', to: 'events#show'
   post 'auth/login', to: 'authentication#login'
   root 'home#index'
   get '/*path' => 'home#index'
