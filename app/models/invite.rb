@@ -8,4 +8,5 @@ class Invite < ApplicationRecord
               length: { maximum: 1000}
     validates :event_id,
               presence: true
+
 end
