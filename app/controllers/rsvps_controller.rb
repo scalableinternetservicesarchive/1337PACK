@@ -1,49 +1,51 @@
-class EventsController < ApplicationController
+class RsvpsController < ApplicationController
     before_action :set_rsvp, only: [:show, :edit, :update, :destroy]
+    # TODO: Remove this check
+    skip_before_action :verify_authenticity_token
 
-    # POST /event
+    # POST /rsvp
     def create
-        @event = Rsvp.new(params.merge({event_id: params[:event_id]}))
-        if @event.save
-            render json: @event, status: :created
+        @rsvp = Rsvp.new(rsvp_params.merge({event_id: rsvp_params[:event_id], user_id: rsvp_params[:user_id]}))
+        if @rsvp.save
+            render json: @rsvp, status: :created
         else
-            render json: @event.errors, status: :unprocessable_entity
+            render json: @rsvp.errors, status: :unprocessable_entity
         end
     end
 
-    # GET /events
+    # GET /rsvp
     def index
-        render json: Rsvp.all
+        render json: Rsvp.where(user_id: rsvp_params['user_id'])
     end
 
-    # GET /event/{id}
+    # GET /rsvp/{id}
     def show
-        render json: Event.find(params[:id])
+        render json: Rsvp.find(rsvp_params[:id])
     end
 
-    # PUT/Patch /event/{id}
+    # PUT/Patch /rsvp/{id}
     def update
-        if @event.update(params)
+        if @rsvp.update(rsvp_params)
             head :no_content
         else
-            render json: @event.errors, status: :unprocessable_entity
+            render json: @rsvp.errors, status: :unprocessable_entity
         end
     end
 
     def destroy
-        if @event.destroy
+        if @rsvp.destroy
             head :no_content
         else
-            render json: @event.errors, status: :unprocessable_entity
+            render json: @rsvp.errors, status: :unprocessable_entity
         end
     end
 
     private
-    def set_event
+    def set_rsvp
         @rsvp = Rsvp.find(params[:id])
     end
 
-    def event_params
-        params.require(:rsvp).permit(:response, :num_guests, :guest_name, :event_id)
+    def rsvp_params
+        params.permit(:response, :num_guests, :guest_name, :event_id, :user_id)
     end
 end
