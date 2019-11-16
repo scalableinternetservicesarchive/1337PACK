@@ -14,6 +14,10 @@ class InvitesController < ApplicationController
     end
 
     # GET /invites
+<<<<<<< Updated upstream
+=======
+    
+>>>>>>> Stashed changes
     def index
         render json: Invite.all
     end
