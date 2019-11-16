@@ -6,4 +6,7 @@ class Invite < ApplicationRecord
               uniqueness: { case_sensitive: false }
     validates :message,
               length: { maximum: 1000}
+    validates :event_id,
+              presence: true
+
 end
