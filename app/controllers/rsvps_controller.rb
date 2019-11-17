@@ -15,7 +15,13 @@ class RsvpsController < ApplicationController
 
     # GET /rsvp
     def index
-        render json: Rsvp.where(user_id: rsvp_params['user_id'])
+      if rsvp_params.key?("event_id")
+        render json: Rsvp.where(event_id: rsvp_params[:event_id])
+      else if rsvp_params.key?("user_id")
+        render json: Rsvp.where(user_id: rsvp_params[:user_id])
+      else
+        render json: Rsvp.all
+      end
     end
 
     # GET /rsvp/{id}

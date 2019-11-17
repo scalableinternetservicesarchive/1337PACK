@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import Cookies from 'universal-cookie';
-import Moment from 'moment';
+
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
@@ -9,12 +9,12 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Navbar from './Navbar';
+import EventGrid from './EventGrid';
 
 const cookies = new Cookies();
 
@@ -32,23 +32,14 @@ const useStyles = makeStyles(theme => ({
 	sizes: 200,
     },
     card: {
-	maxWidth: 500,
-	minWidth: 300,
-	marginBottom: theme.spacing(4),
-    },
-    eventCard: {
-	maxWidth: 600,
-	minWidth: 400,
-	maxHeight: 400,	
-    },
-    section1: {
+	height: '100%',
+	display: 'flex',
+        flexDirection: 'column',
 	margin: theme.spacing(3, 2),
     },
-    section2: {
-	margin: theme.spacing(2),
-    },
-    section3: {
-	margin: theme.spacing(3, 1, 1),
+    cardContent: {
+        flexGrow: 1,
+	padding: theme.spacing(3, 2),
     },
 }));
 
@@ -60,10 +51,6 @@ function getInitials(user) {
     } else {
 	return '';
     }
-}
-
-function formatDateTime(dt) {
-    return Moment(dt).format("MMM Do YYYY h:mm a");
 }
 
 function getEmail(user) {
@@ -128,12 +115,12 @@ export default function Profile(props) {
 	<div>
 	  <CssBaseline />
 	  <Navbar />
-	  <Container component="main" maxWidth="xs">
+	  <Container component="main" maxWidth="md">
 	    <div className={classes.paper}>
-	      <Grid container justify="center" spacing={2}>
-		<Grid item xs={12}>
+	      <Grid container justify="center" alignItems="center">
+		<Grid item xs={6}>
 		  <Card className={classes.card}>
-		    <CardContent>
+		    <CardContent className={classes.cardContent}>
 		      <Avatar className={classes.avatar}>
 			{getInitials(user)}
 		      </Avatar>
@@ -150,40 +137,11 @@ export default function Profile(props) {
 			    Edit profile
 			  </Button>
 		      )}
-	</CardActions>
-	    </Card>
-	    </Grid>
-	    <Grid item xs={12}>
-	    <Typography component="h1" variant="h3">
-	    All events
-	</Typography>
-	    </Grid>
-	    {events.map(event => (
-		<Grid item xs={12} key={event.id}>
-		  <Card className={classes.eventCard}>
-		    <CardContent>
-		      <div className={classes.section1}>
-			<Typography variant="h5">
-			  {event.title}
-			</Typography>
-			<Typography color="textSecondary" variant="body2">
-			  {formatDateTime(event.start_time)}
-			</Typography>
-		      </div>
-		      <Divider variant="middle" />
-		      <div className={classes.section2}>
-			<Typography variant="body2" component="p">
-			  {event.description}
-			</Typography>
-		      </div>
-		      <div className={classes.section3}>
-			<Button color="primary">Learn more</Button>
-		      </div>
-		    </CardContent>
-		  </Card>
-		</Grid>
-	    ))}
-	    </Grid>
+	            </CardActions>
+	          </Card>
+	        </Grid>
+	        <EventGrid events={events} editable={currentUser === id}/>
+	      </Grid>
 	    </div>
 	  </Container>
 	</div>

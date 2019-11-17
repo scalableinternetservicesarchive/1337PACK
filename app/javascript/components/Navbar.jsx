@@ -26,8 +26,6 @@ import Typography from '@material-ui/core/Typography';
 
 import EventCompose from './EventCompose';
 
-const cookies = new Cookies();
-
 const drawerWidth = 240;
 
 const useStyles = makeStyles(theme => ({
@@ -94,6 +92,7 @@ const useStyles = makeStyles(theme => ({
 
 function Navbar(props) {
     const classes = useStyles();
+    const cookies = new Cookies();
     const theme = useTheme();
     const [drawerOpen, setDrawerOpen] = React.useState(false);
     const [username, setUsername] = React.useState('');
@@ -119,9 +118,9 @@ function Navbar(props) {
     };
     
     const handleLogout = () => {
-	cookies.remove('JWT');
-	cookies.remove('FullName');
-	cookies.remove('UID');
+	cookies.remove('JWT', { path: "/" });
+	cookies.remove('FullName', { path: "/" });
+	cookies.remove('UID', { path: "/" });
 	setLoggedIn(false);
 	setUsername('');
 	setUID(null);
