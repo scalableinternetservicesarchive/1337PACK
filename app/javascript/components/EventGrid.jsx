@@ -74,7 +74,9 @@ export default function EventGrid({ events, editable }) {
 		      </div>
 		    </CardContent>
 		    <CardActions>
-		      <Button color="primary" size="small">Learn more</Button>
+		      <Link to={`/event/${event.id}`}>
+			<Button color="primary" size="small">Learn more</Button>
+		      </Link>
 		      {showEdit && (
 			  <Button color="primary" size="small">Edit</Button>
 		      )}

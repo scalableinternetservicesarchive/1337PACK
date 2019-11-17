@@ -159,7 +159,7 @@ export default function Event(props) {
 	  <Container component="main" maxWidth="md" className={classes.main}>
 	    <div className={classes.paper}>
 	      <Grid container justify="center" alignItems="center">
-		<Grid item xs={8}>
+		<Grid item xs={10}>
 		  { event != null && (
 		      <Card className={classes.card}>
 			<CardContent className={classes.cardContent}>

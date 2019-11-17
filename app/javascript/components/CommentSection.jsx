@@ -64,7 +64,6 @@ export default function CommentSection({ event_id }) {
 	const token = document.querySelector('meta[name="csrf-token"]').content;
 	const props = {
 	    event_id: event_id,
-	    parent_id: null,
 	    user_id: cookies.get("UID"),
 	};
 	
@@ -105,13 +104,13 @@ export default function CommentSection({ event_id }) {
         noValidate                                                         
         onSubmit={handleSubmit(onSubmit)}>
 	    <TextField variant="outlined" margin="normal"
-        id="name" name="name"
+        id="user_name" name="user_name"
 	label="Name"
 	defaultValue={cookies.get("FullName")}
         autoFocus
         inputRef={register({ required: true })}/>
 	    <TextField variant="outlined" margin="normal"
-        id="description" name="description"
+        id="content" name="content"
         multiline
         fullWidth
         autoFocus
