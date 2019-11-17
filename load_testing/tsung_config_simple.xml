@@ -1,3 +1,5 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/local/Cellar/tsung/1.7.0/share/tsung/tsung-1.0.dtd" [] >
 <tsung loglevel="notice">
   <!--  Client side setup  -->
   <clients>
@@ -17,32 +19,11 @@
     <option name="global_ack_timeout" value="2000"/>
   </options>
   <sessions>
-    <session name="Create User" probability="100" type="ts_http">
+    <session name="Get event" weight="1" type="ts_http">
       <request>
-        <http url="/"/>
+        <http url="/event/2" method="GET"/>
       </request>
-      <request>
-        <dyn_variable name="authenticity_token"/>
-        <http url="/users/new"/>
-      </request>
-      <setdynvars sourcetype="eval"
-                  code="fun({Pid,DynVars}) ->
-				{ok,Val} = ts_dynvars:lookup(authenticity_token,DynVars),
-				re:replace(Val,&quot;[+]&quot;,&quot;%2B&quot;, [global, {return,list}])
-			end.">
-        <var name="authenticity_token"/>
-      </setdynvars>
       <thinktime random="true" value="2"/>
-      <!--
-      <request subst="true">
-        <dyn_variable name="created_user_id" re="Location: http://.*/tweets/(.*)\r"/>
-        <http url="/tweets" method="POST"
-              contents="authenticity_token=%%_authenticity_token%%&tweet%5Bmessage%5D=Hello&tweet%5Bauthor%5D=blah"/>
-      </request>
-      <request subst="true">
-        <http url="/tweets/%%_created_tweet_id%%"/>
-      </request>
-      -->
     </session>
   </sessions>
 </tsung>
