@@ -21,9 +21,20 @@
   <sessions>
     <session name="Get event" weight="1" type="ts_http">
       <request>
-        <http url="/event/2" method="GET"/>
+        <http url="/events" method="GET"/>
       </request>
       <thinktime random="true" value="2"/>
+    </session>
+    <session name="Get invite" weight="1" type="ts_http">
+      <request>
+        <http url="/invites" method="GET" />
+      </request>
+      <thinktime random="true" value="2"/>
+    </session>
+    <session name="Get RSVPs" weight="1" type="ts_http">
+      <request>
+        <http url="/rsvps" method="GET" />
+      </request>
     </session>
   </sessions>
 </tsung>
