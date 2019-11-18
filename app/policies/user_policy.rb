@@ -1,9 +1,9 @@
 class UserPolicy < ApplicationPolicy
-  def index?
+  def update?
     record === user
   end
 
-  def show?
+  def destroy?
     record === user
   end
 end

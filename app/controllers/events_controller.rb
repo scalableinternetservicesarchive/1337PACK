@@ -26,7 +26,6 @@ class EventsController < ApplicationController
             # return 10 last recently created events
             render json: Event.order("updated_at DESC").limit(10)
         end
-        render json: Event.all
     end
 
     # GET /event/{id}
@@ -57,6 +56,6 @@ class EventsController < ApplicationController
         end
 
         def event_params
-            params.permit(:host_name, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description)
+            params.permit(:host_name, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description, :id)
         end
 end
