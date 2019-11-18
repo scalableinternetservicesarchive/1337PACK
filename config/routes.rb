@@ -3,6 +3,8 @@ Rails.application.routes.draw do
   get 'users/show/:id', to: 'users#show'
   get 'events/index'
   get 'events/show/:id', to: 'events#show'
+  get 'comments/index'
+  get 'rsvps/index'
   post 'auth/login', to: 'authentication#login'
   root 'home#index'
   get '/*path' => 'home#index'

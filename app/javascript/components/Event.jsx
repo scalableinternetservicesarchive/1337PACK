@@ -1,9 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import Cookies from 'universal-cookie';
 import Moment from 'moment';
 
 import Avatar from '@material-ui/core/Avatar';
+import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
@@ -21,6 +22,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Navbar from './Navbar';
 import EventGrid from './EventGrid';
 import CommentSection from './CommentSection';
+import RsvpCompose from './RsvpCompose';
 import RsvpSection from './RsvpSection';
 
 const cookies = new Cookies();
@@ -38,6 +40,9 @@ const useStyles = makeStyles(theme => ({
     avatar: {
 	margin: theme.spacing(1),
 	backgroundColor: theme.palette.secondary.main,
+    },
+    badge: {
+	padding: theme.spacing(0, 2),
     },
     panel: {
 	//backgroundColor: theme.palette.common.white,
@@ -98,7 +103,7 @@ function TabPanel(props) {
     );
 }
 
-export default function Event(props) {
+function Event(props) {
     const classes = useStyles();
     const {
 	match: {
@@ -106,6 +111,7 @@ export default function Event(props) {
 	}
     } = props;
     const [event, setEvent] = React.useState(null);
+    const [commentCount, setCommentCount] = React.useState(0);
     const [rsvps, setRsvps] = React.useState([]);
     const [currentUser, setCurrentUser] = React.useState(null);
     const [tabValue, setTabValue] = React.useState(0);
@@ -132,7 +138,7 @@ export default function Event(props) {
     }, []);
 
     React.useEffect(() => {
-    	const url = `/rsvps?event_id=${id}`;
+    	const url = `/rsvps/index?event_id=${id}`;
 	fetch(url).then(
 	    response => {
 		if (response.ok) {
@@ -146,7 +152,8 @@ export default function Event(props) {
 	    error => console.log(error.message)
 	);
     }, [tabValue]);
-    
+
+    const updateCommentCount = (newCount) => setCommentCount(newCount);
 
     const handleTabChange = (event, newValue) => {
 	setTabValue(newValue);
@@ -194,9 +201,7 @@ export default function Event(props) {
 			</CardContent>
 			<CardActions>
 			  {!!currentUser && (
-			      <Button size="small" color="primary">
-				RSVP
-			      </Button>
+			      <RsvpCompose event_id={id}/>
 			  )}
 		      {currentUser === event.user_id && (
 			  <Button size="small" color="primary">
@@ -214,11 +219,17 @@ export default function Event(props) {
 	textColor="primary"
 	onChange={handleTabChange}
 	    centered>
-	    <Tab label="Comments" />
+	    <Tab label={
+		    <Badge color="secondary"
+		className={classes.badge}
+		badgeContent={commentCount}>
+		    Comments
+		</Badge>
+	    } />
 	    <Tab label="RSVPs" />
 	    </Tabs>
 	    <TabPanel value={tabValue} index={0}>
-	    <CommentSection event_id={id} />
+	    <CommentSection event_id={id} updateCount={updateCommentCount}/>
 	    </TabPanel>
 	    <TabPanel value={tabValue} index={1}>
 	    <RsvpSection event_id={id} />
@@ -230,6 +241,6 @@ export default function Event(props) {
 	  </Container>
 	</div>
     );
-};
+}
 
-
+export default withRouter(Event);
