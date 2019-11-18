@@ -107,7 +107,7 @@ const useStyles2 = makeStyles(theme => ({
 export default function Users() {
     const classes = useStyles2();
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
     const [users, setUsers] = React.useState([]);
 
     React.useEffect(() => {

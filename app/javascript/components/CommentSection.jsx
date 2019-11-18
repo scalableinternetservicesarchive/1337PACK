@@ -10,6 +10,8 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
+import CommentList from './CommentList';
+
 const cookies = new Cookies();
 
 const useStyles = makeStyles(theme => ({
@@ -25,66 +27,72 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function Comments({ comments }) {
-    return (
-	<>
-	  {comments.map( comment => (
-	      <Grid item xs>
-		{comment.content}
-	      </Grid>
-	  ))}
-	</>
+function fetchComments(event_id, setComments) {
+    const url = `/comments/index?event_id=${event_id}`;
+    
+    fetch(url).then(
+        response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error("Network response was not ok.");
+        }
+    ).then(
+        response => {
+	    setComments(response);
+	    return response;
+	}
+    ).catch(
+        error => console.log(error.message)
     );
 }
 
-export default function CommentSection({ event_id }) {
+function addComment(data, event_id, comments, setComments) {
+    const url = "/comments";
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const ids = {
+	event_id: event_id,
+	user_id: cookies.get("UID"),
+    };
+    const merged_data = {...data, ...ids};
+    
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "X-CSRF-Token": token,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(merged_data)
+    }).then(
+        response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error("Network response was not ok.");
+        }
+    ).then(
+	response => setComments([...comments, response])
+    ).catch(
+        error => console.log(error.message)
+    );
+}
+
+function CommentSection({ event_id, updateCount }) {
     const classes = useStyles();
-    const { register, handleSubmit, errors } = useForm();
+    const { register, handleSubmit, errors, setValue } = useForm();
     const [comments, setComments] = React.useState([]);
     
     React.useEffect(() => {
-	const url = `/comments?event_id=${event_id}`;
-	
-        fetch(url).then(
-            response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error("Network response was not ok.");
-            }
-        ).then(
-            response => setComments(response)
-        ).catch(
-            error => console.log(error.message)
-        );
-    });
+	fetchComments(event_id, setComments);
+    }, []);
+
+    React.useEffect(() => {
+	updateCount(comments.length);
+    }, [comments]);
     
     const onSubmit = data => {
-	const url = "/comments";
-	const token = document.querySelector('meta[name="csrf-token"]').content;
-	const props = {
-	    event_id: event_id,
-	    user_id: cookies.get("UID"),
-	};
-	
-        fetch(url, {
-            method: "POST",
-            headers: {
-                "X-CSRF-Token": token,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({...data, ...props})
-        }).then(
-            response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error("Network response was not ok.");
-            }
-        ).catch(
-            error => console.log(error.message)
-        );
-
+	addComment(data, event_id, comments, setComments);
+	setValue('content', '');
     };
     
     return (
@@ -96,7 +104,7 @@ export default function CommentSection({ event_id }) {
 		No comments
 	      </Typography>
 	  ) : (
-	      <Comments comments={comments}/>
+	      <CommentList comments={comments}/>
 	  )}
 	</Grid>
 	    <Grid item xs={12}>
@@ -126,3 +134,5 @@ export default function CommentSection({ event_id }) {
 	</Grid>
     );
 };
+
+export default CommentSection;
