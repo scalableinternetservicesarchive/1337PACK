@@ -28,11 +28,12 @@
                 contents="email=hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
         </request>
         <request subst="true">
+          <dyn_variable name="eid" jsonpath="$.id"/>
           <http url="/events/" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
                 contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
         </request>
-        <request>
-          <http url="/events/%%_uid%%" method="GET"/>
+        <request subst="true">
+          <http url="/events/%%_eid%%" method="GET"/>
         </request>
         <request>
           <http url="/events" method="GET"/>
