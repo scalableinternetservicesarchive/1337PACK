@@ -3,7 +3,7 @@ class EventsController < ApplicationController
     # TODO: Remove this check
     skip_before_action :verify_authenticity_token
 
-    # POST /event
+    # POST /events
     def create
         # TODO: Take the user id from the current logged in user
         @event = Event.new(event_params.merge({user_id: event_params[:user_id

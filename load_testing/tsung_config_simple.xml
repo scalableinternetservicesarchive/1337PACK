@@ -10,7 +10,7 @@
     <server host="localhost" port="3000" type="tcp"/>
   </servers>
   <load>
-    <arrivalphase phase="1" duration="10" unit="second">
+    <arrivalphase phase="1" duration="1" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="1" unit="second"/>
     </arrivalphase>
   </load>
@@ -19,22 +19,24 @@
     <option name="global_ack_timeout" value="2000"/>
   </options>
   <sessions>
-    <session name="Get event" weight="1" type="ts_http">
-      <request>
-        <http url="/events" method="GET"/>
-      </request>
-      <thinktime random="true" value="2"/>
-    </session>
-    <session name="Get invite" weight="1" type="ts_http">
-      <request>
-        <http url="/invites" method="GET" />
-      </request>
-      <thinktime random="true" value="2"/>
-    </session>
-    <session name="Get RSVPs" weight="1" type="ts_http">
-      <request>
-        <http url="/rsvps" method="GET" />
-      </request>
+
+    <!-- signup : this will create a user and store the id in uid -->
+    <session name="sign up, edit, logout" type="ts_http" weight="1">
+        <request>
+          <dyn_variable name="uid" jsonpath="$.id"  />
+          <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="email=hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+        </request>
+        <request subst="true">
+          <http url="/events/" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+        </request>
+        <request>
+          <http url="/events/%%_uid%%" method="GET"/>
+        </request>
+        <request>
+          <http url="/events" method="GET"/>
+        </request>
     </session>
   </sessions>
 </tsung>

@@ -9,6 +9,7 @@ class UsersController < ApplicationController
   def create
     @user = User.create!(user_params)
     if @user
+      p @user
       render json: @user
     else
       render json: @user.errors
@@ -24,7 +25,7 @@ class UsersController < ApplicationController
     end
   end
 
-  def destory
+  def destroy
     @user.destroy
     render json: { message: 'User deleted!'}
   end
