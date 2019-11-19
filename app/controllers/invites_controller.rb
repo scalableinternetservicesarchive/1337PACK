@@ -16,44 +16,49 @@ class InvitesController < ApplicationController
     # GET /invites
     def index
         if invite_params.keys?('event_id')
-            to_render = Invite.where(event_id: invite_params[:event_id]).order("created_at ASC")
+            to_render = Invite.where(event_id: invite_params[:event_id]).order("updated_at DESC")
+        elsif invite_params.keys?('user_id')
+            to_render = Invite.where(user_id: invite_params[:user_id]).order("updated_at DESC")
         else
             to_render = Invite.all
-            render json: to_render
         end
-
-        # GET /invites/{id}
-        def show
-            render json: Invite.find(invite_params[:id])
-        end
-
-        # PUT/Patch /invites/{id}
-        def update
-            if @invite.update(invite_params)
-                head :no_content
-            else
-                render json: @invite.errors, status: :unprocessable_entity
-            end
-        end
-
-        # DELETE /invites/{id}
-        def destroy
-            if @invite.destroy
-                head :no_content
-            else
-                render json: @invite.errors, status: :unprocessable_entity
-            end
-        end
-
-        private
-
-        def set_invite
-            @invite = Invite.find(invite_params[:id])
-        end
-
-        def invite_params
-            # params needed for create a invite
-            params.permit(:id, :event_id, :guest_email, :message)
+        render json: to_render
         end
     end
+
+
+    # GET /invites/{id}
+    def show
+        render json: Invite.find(invite_params[:id])
+    end
+
+    # PUT/Patch /invites/{id}
+    def update
+        if @invite.update(invite_params)
+            head :no_content
+        else
+            render json: @invite.errors, status: :unprocessable_entity
+        end
+    end
+
+    # DELETE /invites/{id}
+    def destroy
+        if @invite.destroy
+            head :no_content
+        else
+            render json: @invite.errors, status: :unprocessable_entity
+        end
+    end
+
+    private
+
+    def set_invite
+        @invite = Invite.find(invite_params[:id])
+    end
+
+    def invite_params
+        # params needed for create a invite
+        params.permit(:id, :event_id, :guest_email, :user_id, :message)
+    end
+
 end
