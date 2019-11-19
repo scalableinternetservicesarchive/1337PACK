@@ -58,7 +58,6 @@
       <request>
         <http url="/events" method="GET"/>
       </request>
-
     </session>
   </sessions>
 </tsung>
