@@ -45,7 +45,7 @@ function Signup(props) {
     const { register, handleSubmit, errors, watch } = useForm();
 
     const onSubmit = data => {
-	const url = "/users/create";
+	const url = "/users";
 	
 	// protect against CSRF attacks
 	const token = document.querySelector('meta[name="csrf-token"]').content;

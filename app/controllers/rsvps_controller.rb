@@ -3,7 +3,7 @@ class RsvpsController < ApplicationController
     # TODO: Remove this check
     skip_before_action :verify_authenticity_token
 
-    # POST /rsvps
+    # POST /rsvp
     def create
         @rsvp = Rsvp.new(rsvp_params.merge({event_id: rsvp_params[:event_id], user_id: rsvp_params[:user_id]}))
         if @rsvp.save
@@ -13,17 +13,23 @@ class RsvpsController < ApplicationController
         end
     end
 
-    # GET /rsvps
+    # GET /rsvp
     def index
-        render json: Rsvp.where(user_id: rsvp_params['user_id'])
+        if rsvp_params.key?("event_id")
+            render json: Rsvp.where(event_id: rsvp_params[:event_id])
+        elsif rsvp_params.key?("user_id")
+            render json: Rsvp.where(user_id: rsvp_params[:user_id])
+        else
+            render json: Rsvp.all
+        end
     end
 
-    # GET /rsvps/{id}
+    # GET /rsvp/{id}
     def show
         render json: Rsvp.find(rsvp_params[:id])
     end
 
-    # PUT/Patch /rsvps/{id}
+    # PUT/Patch /rsvp/{id}
     def update
         if @rsvp.update(rsvp_params)
             head :no_content
