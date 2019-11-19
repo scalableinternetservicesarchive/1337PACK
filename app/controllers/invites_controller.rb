@@ -14,7 +14,6 @@ class InvitesController < ApplicationController
     end
 
     # GET /invites
-
     def index
         if invite_params.keys?('event_id')
             to_render = Invite.where(event_id: invite_params[:event_id]).order("created_at ASC")
