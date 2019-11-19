@@ -48,13 +48,9 @@ ActiveRecord::Schema.define(version: 2019_11_19_215630) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.bigint "event_id"
-<<<<<<< HEAD
-    t.index ["event_id"], name: "index_invites_on_event_id"
-=======
     t.bigint "user_id"
     t.index ["event_id"], name: "index_invites_on_event_id"
     t.index ["user_id"], name: "index_invites_on_user_id"
->>>>>>> 3c06d760497e219e44d289cdd30a797fc137a59f
   end
 
   create_table "rsvps", force: :cascade do |t|
