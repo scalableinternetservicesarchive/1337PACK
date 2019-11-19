@@ -10,8 +10,8 @@
     <server host="localhost" port="3000" type="tcp"/>
   </servers>
   <load>
-    <arrivalphase phase="1" duration="1" unit="second" wait_all_sessions_end="true">
-      <users arrivalrate="1" unit="second"/>
+    <arrivalphase phase="1" duration="10" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="5" unit="second"/>
     </arrivalphase>
   </load>
   <options>
@@ -21,22 +21,44 @@
   <sessions>
 
     <!-- signup : this will create a user and store the id in uid -->
-    <session name="sign up, edit, logout" type="ts_http" weight="1">
-        <request>
-          <dyn_variable name="uid" jsonpath="$.id"  />
-          <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-                contents="email=hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
-        </request>
-        <request subst="true">
-          <http url="/events/" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-                contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
-        </request>
-        <request>
-          <http url="/events/%%_uid%%" method="GET"/>
-        </request>
-        <request>
-          <http url="/events" method="GET"/>
-        </request>
+    <session name="sign up, edit" type="ts_http" weight="1">
+
+      <!-- generate a random number before user creation each time -->
+      <setdynvars sourcetype="random_number" start="1" end="100000">
+        <var name="uid_prefix" />
+      </setdynvars>
+
+      <!-- create a user and store its id in uid -->
+      <request subst="true">
+        <dyn_variable name="uid" jsonpath="$.id"/>
+        <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+      </request>
+
+      <!--
+      <request subst="true">
+        <http url="/users/%%_uid%%" method="PATCH" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="last_name=new_lastname"/>
+      </request>
+      -->
+
+      <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
+      <request subst="true">
+        <dyn_variable name="eid" jsonpath="$.id"/>
+        <http url="/events/" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+      </request>
+
+      <!-- GET events details for event with id `eid` -->
+      <request subst="true">
+        <http url="/events/%%_eid%%" method="GET"/>
+      </request>
+
+      <!-- GET all events -->
+      <request>
+        <http url="/events" method="GET"/>
+      </request>
+      
     </session>
   </sessions>
 </tsung>
