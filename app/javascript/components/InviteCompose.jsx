@@ -1,22 +1,17 @@
 import React from "react";
 import Cookies from 'universal-cookie';
 import useForm from "react-hook-form";
-import { withRouter } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
 import Snackbar from '@material-ui/core/Snackbar';
+import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
 const cookies = new Cookies();
@@ -36,18 +31,61 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+function fetchUsers(setUsers) {
+    const url = "/users/index";
 
-function RsvpCompose(props) {
+    fetch(url).then(
+        response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error("Network response was not ok.");
+        }
+    ).then(
+        response => {
+            setUsers(response);
+        }
+    ).catch(
+        error => console.log(error.message)
+    );
+}
+
+function sendInvite(user, event_id) {
+    const url = "/invites";
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const data = {
+	event_id: event_id,
+	user_id: user.id,
+    };
+    fetch(url, {
+        method: "POST",
+	headers: {
+	    "X-CSRF-Token": token,
+	    "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    }).then(
+        response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error("Network response was not ok.");
+        }
+    ).catch(
+        error => console.log(error.message)
+    ); 
+};
+
+function InviteCompose(props) {
     const classes = useStyles();
-    const [guestName, setGuestName] = React.useState('');
-    const [guestId, setGuestId] = React.useState(null);
-    const [value, setValue] = React.useState('yes');
+    const [users, setUsers] = React.useState([]);
+    const [selections, setSelections] = React.useState([]);    
     const [open, setOpen] = React.useState(false);
     const [snackbarOpen, setSnackbarOpen] = React.useState(false);
-
+    const { register, handleSubmit, errors } = useForm();
+    
     React.useEffect(() => {
-	setGuestId(cookies.get('UID'));
-	setGuestName(cookies.get('FullName'));
+	fetchUsers(setUsers);
     }, []);
     
     const handleClickOpen = () => {
@@ -58,42 +96,16 @@ function RsvpCompose(props) {
 	setOpen(false);
     };
 
-    const handleRadioChange = event => {
-	setValue(event.target.value);
-    };
-    
     const handleSnackbarClose = () => {
 	setSnackbarOpen(false);
     };
 
-    const handleSubmit = () => {
-	const data = {
-	    guest_id: guestId,
-	    event_id: props.event_id,
-	    guest_name: guestName,
-	    response: value,
-	};
-	const url = "/rsvps";
-	const token = document.querySelector('meta[name="csrf-token"]').content;
-        fetch(url, {
-            method: "POST",
-	    headers: {
-		"X-CSRF-Token": token,
-		"Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        }).then(
-            response => {
-                if (response.ok) {
-		    setOpen(false);
-		    setSnackbarOpen(true);
-                    return response.json();
-                }
-                throw new Error("Network response was not ok.");
-            }
-        ).catch(
-            error => console.log(error.message)
-        ); 
+    const handleChange = (event, value) => {
+	setSelections(value);
+    };
+    
+    const onSubmit = () => {
+	selections.map(user => sendInvite(user, props.event_id));
     };
     
     return (
@@ -108,44 +120,36 @@ function RsvpCompose(props) {
 		    message='Success!'/>
 	  <Button color="primary" size="small"
 		  onClick={handleClickOpen}>
-	    RSVP
+	    Invite
 	  </Button>
 	  
 	  <Dialog open={open} onClose={handleClose}>
-	    <DialogTitle>RSVP</DialogTitle>
+	    <DialogTitle>Invite</DialogTitle>
 	    <DialogContent>
-	      <DialogContentText>Respond as {guestName}</DialogContentText>
 	      <div className={classes.paper}>
 		<form className={classes.form}
 		      noValidate
-		      onSubmit={handleSubmit}>
+		      onSubmit={onSubmit}>
 		  <Grid container justify="center" alignItems="center">
 		    <Grid item xs={12}>
-		      <FormControl component="fieldset">
-			<FormLabel component="legend">Response</FormLabel>
-			<RadioGroup name="response" value={value}
-				    onChange={handleRadioChange} row>
-			  <FormControlLabel value="yes"
-					    control={<Radio color="primary" />}
-					    label="Yes"
-					    labelPlacement="bottom" />
-			  <FormControlLabel value="maybe"
-					    control={<Radio color="primary" />}
-					    label="Maybe"
-					    labelPlacement="bottom" />
-			  <FormControlLabel value="no"
-					    control={<Radio color="primary" />}
-					    label="No"
-					    labelPlacement="bottom" />
-			</RadioGroup>
-		      </FormControl>
+		      <Autocomplete multiple
+				    options={users}
+				    getOptionLabel={option => option.email}
+			onChange={handleChange}
+			renderInput={params => (
+			    <TextField {...params}
+				       variant="outlined"
+				       label="Send Invites to"
+				       margin="normal"
+				       fullWidth/>
+			)}/>
 		    </Grid>
 		    <Grid item xs={12}>
 		      <Button type="submit"
                               variant="contained"
                               color="primary"
                               className={classes.submit}>
-			Post
+			Send
                       </Button>
 		      <Button variant="contained"
                               color="secondary"
@@ -163,4 +167,4 @@ function RsvpCompose(props) {
     );
 };
 
-export default withRouter(RsvpCompose);
+export default InviteCompose;

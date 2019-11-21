@@ -24,6 +24,7 @@ import EventGrid from './EventGrid';
 import CommentSection from './CommentSection';
 import RsvpCompose from './RsvpCompose';
 import RsvpSection from './RsvpSection';
+import InviteCompose from './InviteCompose';
 
 const cookies = new Cookies();
 
@@ -112,7 +113,6 @@ function Event(props) {
     } = props;
     const [event, setEvent] = React.useState(null);
     const [commentCount, setCommentCount] = React.useState(0);
-    const [rsvps, setRsvps] = React.useState([]);
     const [currentUser, setCurrentUser] = React.useState(null);
     const [tabValue, setTabValue] = React.useState(0);
     
@@ -136,22 +136,6 @@ function Event(props) {
 	    error => console.log(error.message)
 	);
     }, []);
-
-    React.useEffect(() => {
-    	const url = `/rsvps/index?event_id=${id}`;
-	fetch(url).then(
-	    response => {
-		if (response.ok) {
-		    return response.json();
-		}
-		throw new Error("Network response was not ok.");
-	    }
-	).then(
-	    response => setRsvps(response)
-	).catch(
-	    error => console.log(error.message)
-	);
-    }, [tabValue]);
 
     const updateCommentCount = (newCount) => setCommentCount(newCount);
 
@@ -201,12 +185,15 @@ function Event(props) {
 			</CardContent>
 			<CardActions>
 			  {!!currentUser && (
-			      <RsvpCompose event_id={id}/>
+			      <RsvpCompose event_id={id} />
 			  )}
-		      {currentUser === event.user_id && (
-			  <Button size="small" color="primary">
-			    Edit
-			  </Button>
+		      {currentUser == event.user_id && (
+			  <>
+			    <InviteCompose event_id={id} />
+			    <Button size="small" color="primary">
+			      Edit
+			    </Button>
+			  </>
 		      )}
 	              </CardActions>
 			  </Card>
