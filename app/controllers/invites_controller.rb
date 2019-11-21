@@ -1,5 +1,5 @@
 class InvitesController < ApplicationController
-    before_action :set_invites, only: [:show, :edit, :update, :destroy]
+    before_action :set_invite, only: [:show, :edit, :update, :destroy]
     # allow following to diable authentification
     skip_before_action :verify_authenticity_token
 
@@ -15,15 +15,14 @@ class InvitesController < ApplicationController
 
     # GET /invites
     def index
-        if invite_params.keys?('event_id')
+        if invite_params.key?('event_id')
             to_render = Invite.where(event_id: invite_params[:event_id]).order("updated_at DESC")
-        elsif invite_params.keys?('user_id')
+        elsif invite_params.key?('user_id')
             to_render = Invite.where(user_id: invite_params[:user_id]).order("updated_at DESC")
         else
             to_render = Invite.all
         end
         render json: to_render
-        end
     end
 
 
