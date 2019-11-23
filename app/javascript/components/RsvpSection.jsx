@@ -51,18 +51,19 @@ function RsvpSection({ event_id }) {
     }, []);
 
     return (
-	<Grid container className={classes.main}
-	      justify="center" alignItems="center">
-	  <Grid item xs={12}>
-	  {rsvps.length === 0 ? (
-	      <Typography variant="body1">
-		No rsvps
-	      </Typography>
-	  ) : (
-	      <RsvpList rsvps={rsvps}/>
-	  )}
-	</Grid>
-	</Grid>
+    <Grid 
+    container className={classes.main}
+	justify="center" alignItems="center">
+        <Grid item xs={12}>
+            {rsvps.length === 0 ? (
+                <Typography variant="body1">
+                    No rsvps
+                </Typography>
+            ) : (
+                <RsvpList rsvps={rsvps}/>
+            )}
+        </Grid>
+    </Grid>
     );
 };
 

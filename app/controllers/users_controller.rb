@@ -25,14 +25,15 @@ class UsersController < ApplicationController
 
   def update
     authorize @user
-    if @user.update(user_params)
+    if @user.update_attributes(user_params)
       render json: { message: 'User updated!'}
     else
+      Rails.logger.info(@user.errors.inspect)
       render json: @user.errors, status: :unprocessable_entity
     end
   end
   
-  def destory
+  def destroy
     authorize @user
     @user.destroy
     render json: { message: 'User deleted!'}
