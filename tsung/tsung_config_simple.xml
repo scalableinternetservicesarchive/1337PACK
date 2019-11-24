@@ -11,15 +11,16 @@
   </servers>
   <load>
     <arrivalphase phase="1" duration="10" unit="second" wait_all_sessions_end="true">
-      <users arrivalrate="5" unit="second"/>
+      <users arrivalrate="1" unit="second"/>
     </arrivalphase>
   </load>
+
   <options>
     <!--  Set connection timeout to 2 seconds  -->
     <option name="global_ack_timeout" value="2000"/>
   </options>
-  <sessions>
 
+  <sessions>
     <!-- signup : this will create a user and store the id in uid -->
     <session name="sign up, edit" type="ts_http" weight="1">
 
@@ -45,10 +46,31 @@
       <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
       <request subst="true">
         <dyn_variable name="eid" jsonpath="$.id"/>
-        <http url="/events/" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+        <http url="/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
               contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
       </request>
 
+      <!-- create an invite -->
+      <for var="i" from="1" to="5">
+      <request subst="true">
+        <dyn_variable name="invite_id" jsonpath="$.id" />
+        <http url="/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
+      </request>
+      </for>
+
+      <!-- GET list of all events for this user -->
+      <request subst="true">
+        <dyn_variable name="events_list" jsonpath="$..*"/>
+        <http url="/events" method="GET" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%"/>
+      </request>
+
+      <!-- GET list of all invites for this user with the event_ids fetched above -->
+      <!--
+      <request subst="true">
+        <http url="/invites" method="GET" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%&amp;event_id=%%"/>
+      </request>
+      -->
+      
       <!-- GET events details for event with id `eid` -->
       <request subst="true">
         <http url="/events/%%_eid%%" method="GET"/>
@@ -58,6 +80,7 @@
       <request>
         <http url="/events" method="GET"/>
       </request>
+
     </session>
   </sessions>
 </tsung>
