@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   get 'events/index'
   get 'events/show/:id', to: 'events#show'
   get 'comments/index'
+  get 'invites/index'
   get 'rsvps/index'
   post 'auth/login', to: 'authentication#login'
   root 'home#index'
