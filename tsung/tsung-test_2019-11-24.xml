@@ -21,20 +21,50 @@
   </options>
 
   <sessions>
-    <!-- signup : this will create a user and store the id in uid -->
-    <session name="sign up, edit" type="ts_http" weight="1">
+    <!-- signup-browse:
+        - create a user
+        - browse the event list and visit a random number of events (1~5)
+        - exit
+     -->
+    <session name="signup-browse" type="ts_http" weight="1">
 
-      <!-- generate a random number before user creation each time -->
+      <!-- generate a random number to distinguish users, may want to change to random string -->
       <setdynvars sourcetype="random_number" start="1" end="100000">
-        <var name="uid_prefix" />
+        <var name="uid_prefix"/>
       </setdynvars>
 
-      <!-- create a user and store its id in uid -->
+      <!-- create a user and store its id in uid, if email already exists, restart session -->
       <request subst="true">
-        <dyn_variable name="uid" jsonpath="$.id"/>
-        <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+        <match do="restart" max_restart="5" when="match">Network response was not ok</match>
+        <dyn_variable name="uid" jsonpath="$.id" />
+        <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded" contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
       </request>
+
+      <!-- GET events and store all event ids-->
+      <setdynvars sourcetype="random_number" start="1" end="5">
+        <var name="e_num_to_visit"/>
+      </setdynvars>
+
+      <request>
+        <dyn_variable name="eid_list" jsonpath="$..id"/>
+        <http url="/events" method="GET"/>
+      </request>
+
+      <for from="1" to="%%_e_num_to_visit%%" incr="1" var="counter">
+        <setdynvars sourcetype="eval"
+          code="fun({Pid,DynVars})->
+                  {ok,elist}=ts_dynvars:lookup(eid_list,DynVars),
+                  lists:nth(rand:uniform(length(elist)), elist) end.">
+          <var name="eid"/>
+        </setdynvars>
+
+        <!-- GET events details for event with id `eid` -->
+        <request subst="true">
+          <http url="/events/%%_eid%%" method="GET"/>
+        </request>
+      </for>
+
+    </session>
 
       <!--
       <request subst="true">
@@ -43,26 +73,23 @@
       </request>
       -->
 
-      <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
-      <request subst="true">
-        <dyn_variable name="eid" jsonpath="$.id"/>
-        <http url="/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
-      </request>
 
-      <!-- create an invite -->
+
+      <!-- create an invite
       <for var="i" from="1" to="5">
       <request subst="true">
         <dyn_variable name="invite_id" jsonpath="$.id" />
         <http url="/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
       </request>
       </for>
+      -->
 
-      <!-- GET list of all events for this user -->
+      <!-- GET list of all events for this user
       <request subst="true">
         <dyn_variable name="events_list" jsonpath="$..*"/>
         <http url="/events" method="GET" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%"/>
       </request>
+      -->
 
       <!-- GET list of all invites for this user with the event_ids fetched above -->
       <!--
@@ -70,17 +97,7 @@
         <http url="/invites" method="GET" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%&amp;event_id=%%"/>
       </request>
       -->
-      
-      <!-- GET events details for event with id `eid` -->
-      <request subst="true">
-        <http url="/events/%%_eid%%" method="GET"/>
-      </request>
 
-      <!-- GET all events -->
-      <request>
-        <http url="/events" method="GET"/>
-      </request>
 
-    </session>
   </sessions>
 </tsung>
