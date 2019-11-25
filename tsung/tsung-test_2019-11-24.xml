@@ -45,18 +45,21 @@
         <var name="e_num_to_visit"/>
       </setdynvars>
 
-      <request>
-        <dyn_variable name="eid_list" jsonpath="$..id"/>
-        <http url="/events" method="GET"/>
-      </request>
-
       <for from="1" to="%%_e_num_to_visit%%" incr="1" var="counter">
+
+        <request subst="true">
+          <dyn_variable name="eid" jsonpath="$.[*].id"/>
+          <http url="/events" method="GET"/>
+        </request>
+
+        <!--
         <setdynvars sourcetype="eval"
           code="fun({Pid,DynVars})->
                   {ok,elist}=ts_dynvars:lookup(eid_list,DynVars),
                   lists:nth(rand:uniform(length(elist)), elist) end.">
           <var name="eid"/>
         </setdynvars>
+      -->
 
         <!-- GET events details for event with id `eid` -->
         <request subst="true">
@@ -121,40 +124,6 @@
       </foreach>
 
     </session>
-
-
-      <!--
-      <request subst="true">
-        <http url="/users/%%_uid%%" method="PATCH" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="last_name=new_lastname"/>
-      </request>
-      -->
-
-
-
-      <!-- create an invite
-      <for var="i" from="1" to="5">
-      <request subst="true">
-        <dyn_variable name="invite_id" jsonpath="$.id" />
-        <http url="/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
-      </request>
-      </for>
-      -->
-
-      <!-- GET list of all events for this user
-      <request subst="true">
-        <dyn_variable name="events_list" jsonpath="$..*"/>
-        <http url="/events" method="GET" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%"/>
-      </request>
-      -->
-
-      <!-- GET list of all invites for this user with the event_ids fetched above -->
-      <!--
-      <request subst="true">
-        <http url="/invites" method="GET" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%&amp;event_id=%%"/>
-      </request>
-      -->
-
 
   </sessions>
 </tsung>
