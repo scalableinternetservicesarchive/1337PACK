@@ -25,7 +25,7 @@ class CommentsController < ApplicationController
         render json: to_render
     end
 
-    # GET /comment/{id}
+    # GET /comments/{id}
     def show
         to_render = [Comment.find(comment_params[:id])]
         to_render += Comment.where(parent_id: comment_params[:id]).order("created_at ASC")
@@ -33,7 +33,7 @@ class CommentsController < ApplicationController
     end
 
     # update content if failed show error message
-    # PUT/Patch /comment/{id}
+    # PUT/Patch /comments/{id}
     def update
         if @comment.update(comment_params)
             head :no_content
@@ -42,7 +42,7 @@ class CommentsController < ApplicationController
         end
     end
 
-    # DELETE /comment/{id}
+    # DELETE /comments/{id}
     def destroy
         if @comment.destroy
             Comment.where(parent_id: comment_params[:id]).destroy_all
