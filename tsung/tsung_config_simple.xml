@@ -70,7 +70,7 @@
         <http url="/invites" method="GET" version="1.1" content_type="application/x-www-form-urlencoded" contents="user_id=%%_uid%%&amp;event_id=%%"/>
       </request>
       -->
-      
+
       <!-- GET events details for event with id `eid` -->
       <request subst="true">
         <http url="/events/%%_eid%%" method="GET"/>
