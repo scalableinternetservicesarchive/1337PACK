@@ -32,7 +32,7 @@
       <!-- create a user and store its id in uid -->
       <request subst="true">
         <dyn_variable name="uid" jsonpath="$.id"/>
-        <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
               contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
       </request>
 
@@ -40,7 +40,7 @@
       <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
       <request subst="true">
         <dyn_variable name="eid" jsonpath="$.id"/>
-        <http url="/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+        <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
               contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
       </request>
 
@@ -48,19 +48,19 @@
       <for var="i" from="1" to="5">
         <request subst="true">
           <dyn_variable name="invite_id" jsonpath="$.id"/>
-          <http url="/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+          <http url="/api/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
                 contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
         </request>
       </for>
 
       <!-- GET events details for event with id `eid` -->
       <request subst="true">
-        <http url="/events/%%_eid%%" method="GET"/>
+        <http url="/api/events/%%_eid%%" method="GET"/>
       </request>
 
       <!-- GET all events -->
       <request>
-        <http url="/events" method="GET"/>
+        <http url="/api/events" method="GET"/>
       </request>
 
     </session>
@@ -84,14 +84,14 @@
       <!-- create a user and store its id in uid -->
       <request subst="true">
         <dyn_variable name="uid" jsonpath="$.id"/>
-        <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
               contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
       </request>
 
       <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
       <request subst="true">
         <dyn_variable name="eid" jsonpath="$.id"/>
-        <http url="/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+        <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
               contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
       </request>
 
@@ -99,7 +99,7 @@
       <for var="i" from="1" to="5">
         <request subst="true">
           <dyn_variable name="invite_id" jsonpath="$.id"/>
-          <http url="/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+          <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
                 contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
         </request>
       </for>
@@ -109,25 +109,24 @@
       user.
       -->
       <request subst="true">
-        <http url="/rsvps" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;response=yes&amp;event_id=%%_eid%%&amp;guest_name=%%_uid_prefix%%-guest"/>
+        <http url="/api/events/%%_eid%%/rsvps" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%&amp;response=yes&amp;guest_name=%%_uid_prefix%%-guest"/>
       </request>
 
       <!-- GET all events -->
       <request>
-        <http url="/events" method="GET"/>
+        <http url="/api/events" method="GET"/>
       </request>
 
       <!-- view RSVPs for this event -->
       <request subst="true">
-        <http url="/rsvps/index" method="GET" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;event_id=%%_eid%%"/>
+        <http url="/api/events/%%_eid%%/rsvps" method="GET" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%"/>
       </request>
 
       <!-- view invites sent for that event -->
       <request>
-        <http url="/invites" method="GET" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="event_id=%%_eid%%"/>
+        <http url="/api/events/%%_eid%%/invites" method="GET" />
       </request>
 
     </session>
