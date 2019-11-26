@@ -89,8 +89,7 @@ function EventCompose(props) {
     if (uid !== null) {
       data.user_id = uid;
     }
-    console.log(data);
-    const url = "/events";
+    const url = "/api/events";
     const token = document.querySelector('meta[name="csrf-token"]').content;
     fetch(url, {
       method: "POST",

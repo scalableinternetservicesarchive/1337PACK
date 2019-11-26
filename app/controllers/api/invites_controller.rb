@@ -1,11 +1,13 @@
-class InvitesController < ApplicationController
-    before_action :set_invite, only: [:show, :edit, :update, :destroy]
+class Api::InvitesController < ApplicationController
+    before_action :set_invite, only: [:show, :update, :destroy]
+    before_action :set_event, only: [:create, :index]
+
     # allow following to diable authentification
     skip_before_action :verify_authenticity_token
 
-    # POST /invites
+    # POST /events/:event_id/invites
     def create
-        @invite = Invite.new(invite_params)
+        @invite = @event.invites.build(invite_params)
         if @invite.save
             render json: @invite, status: :created
         else
@@ -15,20 +17,21 @@ class InvitesController < ApplicationController
 
     # GET /invites
     def index
-        if invite_params.key?('event_id')
-            to_render = Invite.where(event_id: invite_params[:event_id]).order("updated_at DESC")
-        elsif invite_params.key?('user_id')
-            to_render = Invite.where(user_id: invite_params[:user_id]).order("updated_at DESC")
+        if params[:user_id]
+            @user = set_user
+            render json: @user.invites.order("updated_at DESC")
         else
-            to_render = Invite.all
+            render json: @event.invites
         end
-        render json: to_render
     end
-
 
     # GET /invites/{id}
     def show
-        render json: Invite.find(invite_params[:id])
+        if @invite
+            render json: @invite
+        else
+            render json: @invite.errors
+        end
     end
 
     # PUT/Patch /invites/{id}
@@ -51,8 +54,16 @@ class InvitesController < ApplicationController
 
     private
 
+    def set_event
+        @event = Event.find(params[:event_id])
+    end
+
+    def set_user
+        @user = User.find(params[:user_id])
+    end
+
     def set_invite
-        @invite = Invite.find(invite_params[:id])
+        @invite = Invite.find(params[:id])
     end
 
     def invite_params

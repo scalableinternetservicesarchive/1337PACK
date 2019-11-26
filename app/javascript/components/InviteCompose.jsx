@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function fetchUsers(setUsers) {
-  const url = "/users/index";
+  const url = "/api/users";
 
   fetch(url)
     .then(response => {
@@ -48,7 +48,7 @@ function fetchUsers(setUsers) {
 }
 
 function sendInvite(user, event_id, message) {
-  const url = "/invites";
+  const url = `/api/events/${event_id}/invites`;
   const token = document.querySelector('meta[name="csrf-token"]').content;
   const data = {
     event_id: event_id,

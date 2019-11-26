@@ -1,13 +1,11 @@
-class EventsController < ApplicationController
+class Api::EventsController < ApplicationController
     before_action :set_event, only: [:show, :edit, :update, :destroy]
     # TODO: Remove this check
     skip_before_action :verify_authenticity_token
 
     # POST /events
     def create
-        # TODO: Take the user id from the current logged in user
-        @event = Event.new(event_params.merge({user_id: event_params[:user_id
-        ]}))
+        @event = Event.new(event_params.merge({user_id: event_params[:user_id]}))
         if @event.save
             render json: @event, status: :created
         else
@@ -19,24 +17,27 @@ class EventsController < ApplicationController
     # get list of events which were recently created(top 10 events)
     # to get list of events of the LOGGED in user, look out for the user_id parameter in the API call
     def index
-        # if the user_id is passed, return the events of that particular user
         if event_params[:user_id]
-            render json: Event.where(user_id: event_params[:user_id])
+            @user = set_user
+            render json: @user.events
         else
-            # return 10 last recently created events
-            render json: Event.order("updated_at DESC").limit(10)
+            render json: Event.order("updated_at DESC")
         end
     end
 
     # GET /event/{id}
     def show
-        render json: Event.find(event_params[:id])
+        if @event
+            render json: @event
+        else
+            render json: @event.errors
+        end
     end
 
     # PUT/Patch /event/{id}
     def update
         if @event.update(event_params)
-            head :no_content
+            render json: @event
         else
             render json: @event.errors, status: :unprocessable_entity
         end
@@ -51,8 +52,12 @@ class EventsController < ApplicationController
     end
 
     private
+        def set_user
+            @user = User.find(params[:user_id])
+        end
+
         def set_event
-            @event = Event.find(event_params[:id])
+            @event = Event.find(params[:id])
         end
 
         def event_params
