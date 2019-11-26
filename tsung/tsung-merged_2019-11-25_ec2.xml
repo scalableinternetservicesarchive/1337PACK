@@ -7,7 +7,7 @@
   </clients>
   <!--  Server side setup  -->
   <servers>
-    <server host="http://s-t3m-db-t3m.kvxvcfcwpx.us-west-2.elasticbeanstalk.com/" port="80" type="tcp"/>
+    <server host="s-t3m-db-t3m.kvxvcfcwpx.us-west-2.elasticbeanstalk.com" port="80" type="tcp"/>
   </servers>
   <load>
     <!-- First phase user signup and create events -->
