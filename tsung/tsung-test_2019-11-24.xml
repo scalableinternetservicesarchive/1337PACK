@@ -10,7 +10,13 @@
     <server host="localhost" port="3000" type="tcp"/>
   </servers>
   <load>
+    <!-- First phase user signup and create events -->
     <arrivalphase phase="1" duration="60" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="1" unit="second"/>
+    </arrivalphase>
+
+    <!-- Second phase less user signup, event creating, and invites and comments -->
+    <arrivalphase phase="2" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="1" unit="second"/>
     </arrivalphase>
   </load>
@@ -22,10 +28,11 @@
 
   <sessions>
     <!-- signup-browse:
-        - create a user
-        - browse the event list and visit a random number of events (1~5)
-        - exit
-     -->
+      - user sign-up (2s)
+      - a chance of creating 1~5 events (5s)
+      - browse the event list and visit a random number of events (1~5) (1s)
+      - exit
+    -->
     <session name="signup-browse" type="ts_http" weight="1">
 
       <!-- generate a random number to distinguish users, may want to change to random string -->
@@ -33,49 +40,67 @@
         <var name="uid_prefix"/>
       </setdynvars>
 
-      <!-- create a user and store its id in uid, if email already exists, restart session -->
+      <!-- create a user and store its id in uid, if the email already exists, restart session -->
       <request subst="true">
         <match do="restart" max_restart="5" when="match">Network response was not ok</match>
         <dyn_variable name="uid" jsonpath="$.id" />
         <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded" contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
       </request>
 
-      <!-- GET events and store all event ids-->
+      <thinktime value='2' random='true'/>
+
       <setdynvars sourcetype="random_number" start="1" end="5">
+        <var name="e_num_to_create"/>
         <var name="e_num_to_visit"/>
       </setdynvars>
+
+      <for from='1' to="%%_e_num_to_create%%" incr="1" var="counter">
+        <!-- create a new event for the user with id `uid`, store the created event's id in eid -->
+        <request subst="true">
+          <dyn_variable name="eid" jsonpath="$.id"/>
+          <http url="/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=fooooobaaaaaarrahhhrrr"/>
+        </request>
+
+        <thinktime value='5' random='true'/>
+      </for>
+
 
       <for from="1" to="%%_e_num_to_visit%%" incr="1" var="counter">
 
         <request subst="true">
-          <dyn_variable name="eid" jsonpath="$.[*].id"/>
+          <dyn_variable name="eid" jsonpath="$.[0].id"/>
           <http url="/events" method="GET"/>
         </request>
-
-        <!--
-        <setdynvars sourcetype="eval"
-          code="fun({Pid,DynVars})->
-                  {ok,elist}=ts_dynvars:lookup(eid_list,DynVars),
-                  lists:nth(rand:uniform(length(elist)), elist) end.">
-          <var name="eid"/>
-        </setdynvars>
-      -->
 
         <!-- GET events details for event with id `eid` -->
         <request subst="true">
           <http url="/events/%%_eid%%" method="GET"/>
         </request>
+        <request subst="true">
+          <http url="/comments?event_id=%%_eid%%" method="GET"/>
+        </request>
+
+        <thinktime value='1' random='true'/>
+
       </for>
 
     </session>
 
-    <!-- signup-createEvent:
-        - create a user
-        - create a event
-        - invite a random number of people (3~10)
-        - exit
-     -->
-    <session name="signup-createEvent" type="ts_http" weight="1">
+    <!-- Signup_browse_comment:
+    - user sign-up (2s)
+
+    - visit 1~3 event (1s)
+      - browse events (1s)
+      - visit a event
+      - view comments (2s)
+      - leave a comment (5s)
+      - browse users (1s)
+      - invite 1~3 users (1s)
+    - exit
+    -->
+
+    <session name="signup-visit-comment-invite" type="ts_http" weight="1">
 
       <!-- generate a random number to distinguish users, may want to change to random string -->
       <setdynvars sourcetype="random_number" start="1" end="100000">
@@ -89,39 +114,53 @@
         <http url="/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded" contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
       </request>
 
-      <!-- create a new event for the user with id `uid`, store the created event's id in eid -->
-      <request subst="true">
-        <dyn_variable name="eid" jsonpath="$.id"/>
-        <http url="/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=fooooobaaaaaarrahhhrrr"/>
-      </request>
+      <thinktime value='2' random='true'/>
 
       <!-- GET events and store all event ids-->
-      <setdynvars sourcetype="random_number" start="3" end="15">
-        <var name="u_num_to_invite"/>
+      <setdynvars sourcetype="random_number" start="1" end="3">
+        <var name="e_num_to_view"/>
+        <var name='u_num_to_invite'/>
       </setdynvars>
 
-      <request>
-        <dyn_variable name="uid_list" jsonpath="$..id"/>
-        <http url="/users" method="GET"/>
-      </request>
-
-      <!-- extract first u_num_to_invite number of users to invite s-->
-      <setdynvars sourcetype="eval"
-        code="fun({Pid,DynVars})->
-                {ok,ulist}=ts_dynvars:lookup(uid_list,DynVars),
-                {ok,unum}=ts_dynvars:lookup(u_num_to_invite,DynVars),
-                lists:sublist(ulist, 0, unum) end.">
-        <var name="u_to_invite"/>
-      </setdynvars>
-
-      <!-- create a new event for the user with id `uid`, store the created event's id in eid -->
-      <foreach name='g_id' in='u_to_invite'>
+      <for from="1" to="%%_e_num_to_view%%" incr="1" var="e_counter">
         <request subst="true">
-          <http url="/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="event_id=%%_eid%%&amp;user_id=%%_g_id%%pack&amp;message=WarmmmlyInvitesTofooooobaaaaaarrahhhrrr"/>
+          <dyn_variable name="eid" jsonpath="$.[0].id"/>
+          <http url="/events" method="GET"/>
         </request>
-      </foreach>
+
+        <thinktime value='1' random='true'/>
+
+        <request subst="true">
+          <http url="/events/%%_eid%%" method="GET"/>
+        </request>
+        <request subst="true">
+          <http url="/comments?event_id=%%_eid%%" method="GET"/>
+        </request>
+
+        <thinktime value='2' random='true'/>
+
+        <request subst="true">
+          <http url="/comments" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="event_id=%%_eid%%&amp;user_id=%%_uid%%&amp;content=HHEEELLOOOO"/>
+        </request>
+
+        <thinktime value='5' random='true'/>
+
+        <for from="1" to="%%_u_num_to_invite%%" incr="1" var="u_counter">
+
+          <request>
+            <dyn_variable name="gid" jsonpath="$.[0].id"/>
+            <http url="/users" method="GET"/>
+          </request>
+          <thinktime value='1' random='true'/>
+
+          <request subst="true">
+            <http url="/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="event_id=%%_eid%%&amp;user_id=%%_gid%%pack&amp;message=WarmmmlyInvitesTofooooobaaaaaarrahhhrrr"/>
+          </request>
+          <thinktime value='1' random='true'/>
+        </for>
+      </for>
 
     </session>
 
