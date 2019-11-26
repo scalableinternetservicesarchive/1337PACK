@@ -11,6 +11,9 @@ import Navbar from './Navbar';
 import EventGrid from './EventGrid';
 
 const useStyles = makeStyles(theme => ({
+    main: {
+        marginLeft: theme.spacing(7) + 1,
+    },
     paper: {
 	marginTop: theme.spacing(8),
 	display: 'flex',
@@ -43,15 +46,9 @@ export default function Events() {
 	<div>
 	  <CssBaseline />
 	  <Navbar />
-	  <Container component="main" maxWidth="md">
-	    <div className={classes.paper}>
-	      <Grid container justify="center" alignItems="center">
-	        <EventGrid events={events} editable={false}/>
-	      </Grid>
-	    </div>
+	  <Container component="main" className={classes.main}>
+	    <EventGrid events={events} editable={false}/>
 	  </Container>
 	</div>
     );
 };
-
-

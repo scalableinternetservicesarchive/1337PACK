@@ -70,6 +70,7 @@ function RsvpCompose(props) {
 	const data = {
 	    guest_id: guestId,
 	    event_id: props.event_id,
+	    guest_name: guestName,
 	    response: value,
 	};
 	const url = "/rsvps";
@@ -118,7 +119,7 @@ function RsvpCompose(props) {
 		<form className={classes.form}
 		      noValidate
 		      onSubmit={handleSubmit}>
-		  <Grid container xs justify="center" alignItems="center">
+		  <Grid container justify="center" alignItems="center">
 		    <Grid item xs={12}>
 		      <FormControl component="fieldset">
 			<FormLabel component="legend">Response</FormLabel>
