@@ -83,7 +83,7 @@ export default function Profile(props) {
   }, [cookies]);
 
   React.useEffect(() => {
-    const url = `/users/show/${id}`;
+    const url = `/api/users/${id}`;
     fetch(url)
       .then(response => {
         if (response.ok) {
@@ -94,7 +94,7 @@ export default function Profile(props) {
       .then(response => setUser(response))
       .catch(error => console.log(error.message));
 
-    const url1 = `/events/index?user_id=${id}`;
+    const url1 = `/api/users/${id}/events`;
     fetch(url1)
       .then(response => {
         if (response.ok) {
@@ -127,9 +127,7 @@ export default function Profile(props) {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  {currentUser === id && (
-                    <ProfileEdit user={user} />
-                  )}
+                  {currentUser === id && <ProfileEdit user={user} />}
                 </CardActions>
               </Card>
             </Grid>

@@ -10,4 +10,7 @@ class User < ApplicationRecord
   has_secure_password
   validates :password,
             presence: true, length: { minimum: 6 }, :on => :create
+  has_many :events, dependent: :destroy
+  has_many :invites
+  has_many :rsvps
 end

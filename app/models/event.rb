@@ -1,4 +1,6 @@
 class Event < ApplicationRecord
-    validates :end_time,
-              presence: false
+    belongs_to :user
+    has_many :comments, dependent: :destroy
+    has_many :invites, dependent: :destroy
+    has_many :rsvps, dependent: :destroy
 end

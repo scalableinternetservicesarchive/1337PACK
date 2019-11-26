@@ -46,7 +46,7 @@ function Login(props) {
     const { register, handleSubmit, errors } = useForm();
 
     const onSubmit = data => {
-	const url = "/auth/login";
+	const url = "/api/auth/login";
 	// protect against CSRF attacks
 	const token = document.querySelector('meta[name="csrf-token"]').content;
 	fetch(url, {
@@ -55,7 +55,7 @@ function Login(props) {
 		"X-CSRF-Token": token,
 		"Content-Type": "application/json"
 	    },
-	    body: JSON.stringify({ user: data })
+	    body: JSON.stringify(data)
 	}).then(
 	    response => {
 		if (response.ok) {

@@ -36,7 +36,7 @@ function ProfileEdit({ user }) {
   const { register, handleSubmit, errors } = useForm();
 
   React.useEffect(() => {
-	setThisUser(user);
+    setThisUser(user);
   }, [user]);
   const handleClickOpen = () => {
     setOpen(true);
@@ -51,7 +51,7 @@ function ProfileEdit({ user }) {
       ...thisUser,
       ...data
     };
-    const url = `/users/${thisUser.id}`;
+    const url = `/api/users/${thisUser.id}`;
     const token = document.querySelector('meta[name="csrf-token"]').content;
     fetch(url, {
       method: "PUT",
@@ -97,8 +97,8 @@ function ProfileEdit({ user }) {
                     required
                     fullWidth
                     label="First Name"
-					autoFocus
-					defaultValue={thisUser && thisUser.first_name}
+                    autoFocus
+                    defaultValue={thisUser && thisUser.first_name}
                     inputRef={register({
                       required: "First name required",
                       maxLength: {
@@ -119,8 +119,8 @@ function ProfileEdit({ user }) {
                     required
                     fullWidth
                     label="Last Name"
-					autoFocus
-					defaultValue={thisUser && thisUser.last_name}
+                    autoFocus
+                    defaultValue={thisUser && thisUser.last_name}
                     inputRef={register({
                       required: "Last name required",
                       maxLength: {
@@ -142,8 +142,8 @@ function ProfileEdit({ user }) {
                     name="email"
                     label="Email Address"
                     autoComplete="email"
-					autoFocus
-					defaultValue={thisUser && thisUser.email}
+                    autoFocus
+                    defaultValue={thisUser && thisUser.email}
                     inputRef={register({
                       required: "Email required",
                       pattern: {

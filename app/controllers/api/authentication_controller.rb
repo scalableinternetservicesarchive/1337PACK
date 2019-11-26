@@ -1,7 +1,9 @@
-class AuthenticationController < ApplicationController
+class Api::AuthenticationController < ApplicationController
+  skip_before_action :verify_authenticity_token
+
   def login
-    @user = User.find_by(email: params[:user][:email].downcase)
-    if @user && @user.authenticate(params[:user][:password])
+    @user = User.find_by(email: params[:email].downcase)
+    if @user && @user.authenticate(params[:password])
       # create and return jwt
       token = JsonWebToken.encode(user_id: @user.id)
       render json: {
