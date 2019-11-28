@@ -170,10 +170,8 @@
       </request>
 
       <!-- view invites sent for that event -->
-      <request subst='true'>
-        <http url="/api/events/%%_eid%%/invites" method="GET" version="1.1"
-              content_type="application/x-www-form-urlencoded"
-              contents="event_id=%%_eid%%"/>
+      <request>
+        <http url="/api/events/%%_eid%%/invites" method="GET" version="1.1"/>
       </request>
 
     </session>
