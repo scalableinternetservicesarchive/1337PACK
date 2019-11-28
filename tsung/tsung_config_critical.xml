@@ -65,7 +65,7 @@
       <request subst="true">
         <dyn_variable name="eid" jsonpath="$.id"/>
         <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25"/>
       </request>
 
       <thinktime value="2" random="true"/>
@@ -127,7 +127,7 @@
       <request subst="true">
         <dyn_variable name="eid" jsonpath="$.id"/>
         <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25%%"/>
       </request>
 
       <!-- create an invite -->
@@ -170,7 +170,7 @@
       </request>
 
       <!-- view invites sent for that event -->
-      <request>
+      <request subst='true'>
         <http url="/api/events/%%_eid%%/invites" method="GET" version="1.1"
               content_type="application/x-www-form-urlencoded"
               contents="event_id=%%_eid%%"/>
