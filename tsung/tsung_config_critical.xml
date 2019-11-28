@@ -41,7 +41,7 @@
   <sessions>
     <!-- ONE
       signup : this will create a user and store the id in uid -->
-    <session name="user_event_invite_create" type="ts_http" weight="0">
+    <session name="user_event_invite_create" type="ts_http" weight="1">
 
       <!-- generate a random number before user creation each time -->
       <setdynvars sourcetype="random_number" start="1" end="100000">
