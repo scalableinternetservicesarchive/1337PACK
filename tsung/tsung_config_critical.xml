@@ -39,8 +39,8 @@
   </options>
 
   <sessions>
-    <!-- ONE -->
-    <!-- signup : this will create a user and store the id in uid -->
+    <!-- ONE
+      signup : this will create a user and store the id in uid -->
     <session name="user_event_invite_create" type="ts_http" weight="0">
 
       <!-- generate a random number before user creation each time -->
@@ -94,7 +94,7 @@
 
     </session>
 
-    <!--
+    <!--TWO
       simulate the events tab on the UI
       -> signup
       -> event create
@@ -131,10 +131,10 @@
       </request>
 
       <!-- create an invite -->
-      <for var="i" from="1" to="%%_num_invites">
+      <for var="i" from="1" to="%%_num_invites%%">
 
         <request>
-          <http url="/api/users" method="POST"/>
+          <http url="/api/users" method="GET"/>
         </request>
 
         <request subst="true">
@@ -146,7 +146,8 @@
 
       </for>
 
-      <!-- RSVP to an event
+      <!--
+      RSVP to an event
       even if we are in the context of another user, we can RSVP to the event created by this session's
       user.
       -->
@@ -177,7 +178,8 @@
 
     </session>
 
-    <!-- signup-browse:
+    <!--THREE
+    signup-browse:
       - user sign-up (2s)
       - a chance of creating 1~5 events (5s)
       - browse the event list and visit a random number of events (1~5) (1s)
@@ -237,7 +239,9 @@
       </for>
 
     </session>
-    <!-- Signup_browse_comment:
+
+    <!-- FOUR
+    Signup_browse_comment:
     - user sign-up (2s)
 
     - visit 1~3 event (1s)
@@ -249,7 +253,6 @@
       - invite 1~3 users (1s)
     - exit
     -->
-
     <session name="signup-visit-comment-invite" type="ts_http" weight="1">
 
       <!-- generate a random number to distinguish users, may want to change to random string -->
@@ -293,7 +296,7 @@
         <request subst="true">
           <http url="/api/events/%%_eid%%/comments" method="POST" version="1.1"
                 content_type="application/x-www-form-urlencoded"
-                contents="user_id=%%_uid%%&amp;content=HHEEELLOOOO"/>
+                contents="user_name=%%_uid%%&amp;content=HHEEELLOOOO"/>
         </request>
 
         <thinktime value='5' random='true'/>
@@ -316,5 +319,6 @@
       </for>
 
     </session>
+
   </sessions>
 </tsung>
