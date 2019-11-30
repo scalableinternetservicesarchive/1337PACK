@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_29_203154) do
+ActiveRecord::Schema.define(version: 2019_11_30_023008) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -41,7 +41,7 @@ ActiveRecord::Schema.define(version: 2019_11_29_203154) do
     t.index ["user_id"], name: "index_events_on_user_id"
   end
 
-  create_table "invites", force: :cascade do |t|
+    create_table "", force: :cascade do |t|
     t.string "message"
     t.string "guest_email"
     t.datetime "created_at", precision: 6, null: false
@@ -75,4 +75,7 @@ ActiveRecord::Schema.define(version: 2019_11_29_203154) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "comments", "events"
+  add_foreign_key "invites", "events"
+  add_foreign_key "rsvps", "events"
 end
