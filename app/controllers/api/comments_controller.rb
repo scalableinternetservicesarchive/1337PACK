@@ -1,6 +1,6 @@
 class Api::CommentsController < ApplicationController
     # do :set_comment function only just before show, edit ... actions
-    before_action :set_event, only: [:index, :create]
+    before_action :set_event, only: [:index]
     before_action :set_comment, only: [:show, :update, :destroy]
 
     # allow following to diable authentification
@@ -8,7 +8,7 @@ class Api::CommentsController < ApplicationController
 
     # POST /events/:event_id/comments
     def create
-        @comment = @event.comments.build(comment_params)
+        @comment = Comment.create!(comment_params)
         if @comment.save
             render json: @comment, status: :created
         else

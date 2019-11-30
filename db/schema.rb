@@ -41,7 +41,7 @@ ActiveRecord::Schema.define(version: 2019_11_30_023008) do
     t.index ["user_id"], name: "index_events_on_user_id"
   end
 
-    create_table "", force: :cascade do |t|
+  create_table "invites", force: :cascade do |t|
     t.string "message"
     t.string "guest_email"
     t.datetime "created_at", precision: 6, null: false

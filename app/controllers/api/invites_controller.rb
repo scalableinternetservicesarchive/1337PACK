@@ -1,13 +1,13 @@
 class Api::InvitesController < ApplicationController
     before_action :set_invite, only: [:show, :update, :destroy]
-    before_action :set_event, only: [:create, :index]
+    before_action :set_event, only: [:index]
 
     # allow following to diable authentification
     skip_before_action :verify_authenticity_token
 
     # POST /events/:event_id/invites
     def create
-        @invite = @event.invites.build(invite_params)
+        @invite = Invite.create!(invite_params)
         if @invite.save
             render json: @invite, status: :created
         else

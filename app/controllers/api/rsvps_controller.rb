@@ -1,13 +1,13 @@
 class Api::RsvpsController < ApplicationController
     before_action :set_rsvp, only: [:show, :update, :destroy]
-    before_action :set_event, only: [:index, :create]
+    before_action :set_event, only: [:index]
 
     # TODO: Remove this check
     skip_before_action :verify_authenticity_token
 
     # POST /events/:event_id/rsvps
     def create
-        @rsvp = @event.rsvps.build(rsvp_params)
+        @rsvp = Rsvp.create!(rsvp_params)
         if @rsvp.save
             render json: @rsvp, status: :created
         else
