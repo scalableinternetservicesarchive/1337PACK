@@ -13,7 +13,7 @@
     <arrivalphase phase="1" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="1" unit="second"/>
     </arrivalphase>
-    <!--
+
     <arrivalphase phase="2" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="4" unit="second"/>
     </arrivalphase>
@@ -21,7 +21,7 @@
     <arrivalphase phase="3" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="8" unit="second"/>
     </arrivalphase>
-
+    <!--
     <arrivalphase phase="4" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="16" unit="second"/>
     </arrivalphase>
@@ -52,22 +52,26 @@
       </setdynvars>
 
       <!-- create a user and store its id in uid -->
-      <request subst="true">
-        <dyn_variable name="uid" jsonpath="$.id"/>
-        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
-      </request>
+      <transaction name="user_create_txn">
+        <request subst="true">
+          <dyn_variable name="uid" jsonpath="$.id"/>
+          <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+        </request>
+      </transaction>
 
       <thinktime value="2" random="true"/>
 
       <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
-      <request subst="true">
-        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
-        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
-        <dyn_variable name="eid" jsonpath="$.id"/>
-        <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;title=ghost_of_xmas_past&amp;host_name=%%_uid%%pack&amp;location_name=blah_location&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
-      </request>
+      <transaction name="create_event_txn">
+        <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <dyn_variable name="eid" jsonpath="$.id"/>
+          <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;title=ghost_of_xmas_past&amp;host_name=%%_uid%%pack&amp;location_name=blah_location&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+        </request>
+      </transaction>
       <thinktime value="2" random="true"/>
 
       <!--
@@ -79,27 +83,33 @@
       -->
       <!-- create an invite -->
       <for var="i" from="1" to="%%_num_invites%%">
-        <request subst="true">
-          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
-          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
-          <dyn_variable name="invite_id" jsonpath="$.id"/>
-          <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
-                content_type="application/x-www-form-urlencoded"
-                contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
-        </request>
+        <transaction name="invite_create_txn">
+          <request subst="true">
+            <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+            <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+            <dyn_variable name="invite_id" jsonpath="$.id"/>
+            <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
+                  content_type="application/x-www-form-urlencoded"
+                  contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
+          </request>
+        </transaction>
       </for>
 
       <thinktime value="3" random="true"/>
 
       <!-- GET events details for event with id `eid` -->
-      <request subst="true">
-        <http url="/api/events/%%_eid%%" method="GET"/>
-      </request>
+      <transaction name="get_one_events_txn">
+        <request subst="true">
+          <http url="/api/events/%%_eid%%" method="GET"/>
+        </request>
+      </transaction>
 
       <!-- GET all events -->
-      <request>
-        <http url="/api/events" method="GET"/>
-      </request>
+      <transaction name="get_all_events">
+        <request>
+          <http url="/api/events" method="GET"/>
+        </request>
+      </transaction>
 
     </session>
 
