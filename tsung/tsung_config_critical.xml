@@ -10,12 +10,10 @@
     <server host="localhost" port="3000" type="tcp"/>
   </servers>
   <load>
-    <!-- First phase user signup and create events -->
     <arrivalphase phase="1" duration="60" unit="second" wait_all_sessions_end="true">
-      <users arrivalrate="2" unit="second"/>
+      <users arrivalrate="1" unit="second"/>
     </arrivalphase>
-
-    <!-- Second phase less user signup, event creating, and invites and comments -->
+    <!--
     <arrivalphase phase="2" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="4" unit="second"/>
     </arrivalphase>
@@ -31,6 +29,7 @@
     <arrivalphase phase="5" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="32" unit="second"/>
     </arrivalphase>
+    -->
   </load>
 
   <options>
@@ -44,7 +43,7 @@
     <session name="user_event_invite_create" type="ts_http" weight="1">
 
       <!-- generate a random number before user creation each time -->
-      <setdynvars sourcetype="random_number" start="1" end="100000">
+      <setdynvars sourcetype="random_string">
         <var name="uid_prefix"/>
       </setdynvars>
 
@@ -63,16 +62,26 @@
 
       <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
       <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
         <dyn_variable name="eid" jsonpath="$.id"/>
         <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
-              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25"/>
+              contents="user_id=%%_uid%%&amp;title=ghost_of_xmas_past&amp;host_name=%%_uid%%pack&amp;location_name=blah_location&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
       </request>
-
       <thinktime value="2" random="true"/>
 
+      <!--
+      <setdynvars sourcetype="eval" code="fun( {Pid, DynVars} ) ->
+        io:format([126, $p, 126, $n, 126, $n], [DynVars]),
+        ok end.">
+        <var name="eid" />
+      </setdynvars>
+      -->
       <!-- create an invite -->
       <for var="i" from="1" to="%%_num_invites%%">
         <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
           <dyn_variable name="invite_id" jsonpath="$.id"/>
           <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
                 content_type="application/x-www-form-urlencoded"
@@ -104,7 +113,7 @@
       -> fetch all the RSVPs for that particular event
       -> fetch list of invites sent for that event
     -->
-    <session name="event_page_details" type="ts_http" weight="1">
+    <session name="event_page_details" type="ts_http" weight="0">
       <!-- generate a random number before user creation each time -->
       <setdynvars sourcetype="random_number" start="1" end="100000">
         <var name="uid_prefix"/>
@@ -125,6 +134,8 @@
 
       <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
       <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
         <dyn_variable name="eid" jsonpath="$.id"/>
         <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
               contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25%%"/>
@@ -138,6 +149,8 @@
         </request>
 
         <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
           <dyn_variable name="invite_id" jsonpath="$.id"/>
           <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
                 content_type="application/x-www-form-urlencoded"
@@ -164,6 +177,8 @@
 
       <!-- view RSVPs for this event -->
       <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
         <http url="/api/events/%%_eid%%/rsvps" method="GET" version="1.1"
               content_type="application/x-www-form-urlencoded"
               contents="user_id=%%_uid%%"/>
@@ -183,7 +198,7 @@
       - browse the event list and visit a random number of events (1~5) (1s)
       - exit
     -->
-    <session name="signup-browse" type="ts_http" weight="1">
+    <session name="signup-browse" type="ts_http" weight="0">
 
       <!-- generate a random number to distinguish users, may want to change to random string -->
       <setdynvars sourcetype="random_number" start="1" end="100000">
@@ -192,6 +207,8 @@
 
       <!-- create a user and store its id in uid, if the email already exists, restart session -->
       <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
         <match do="restart" max_restart="5" when="match">Network response was not ok</match>
         <dyn_variable name="uid" jsonpath="$.id"/>
         <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
@@ -208,6 +225,8 @@
       <for from='1' to="%%_e_num_to_create%%" incr="1" var="counter">
         <!-- create a new event for the user with id `uid`, store the created event's id in eid -->
         <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
           <dyn_variable name="eid" jsonpath="$.id"/>
           <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
                 contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=fooooobaaaaaarrahhhrrr"/>
@@ -251,7 +270,7 @@
       - invite 1~3 users (1s)
     - exit
     -->
-    <session name="signup-visit-comment-invite" type="ts_http" weight="1">
+    <session name="signup-visit-comment-invite" type="ts_http" weight="0">
 
       <!-- generate a random number to distinguish users, may want to change to random string -->
       <setdynvars sourcetype="random_number" start="1" end="100000">
@@ -260,6 +279,8 @@
 
       <!-- create a user and store its id in uid, if email already exists, restart session -->
       <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
         <match do="restart" max_restart="5" when="match">Network response was not ok</match>
         <dyn_variable name="uid" jsonpath="$.id"/>
         <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
@@ -292,6 +313,8 @@
         <thinktime value='2' random='true'/>
 
         <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
           <http url="/api/events/%%_eid%%/comments" method="POST" version="1.1"
                 content_type="application/x-www-form-urlencoded"
                 contents="user_name=%%_uid%%&amp;content=HHEEELLOOOO"/>
@@ -308,6 +331,8 @@
           <thinktime value='1' random='true'/>
 
           <request subst="true">
+            <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+            <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
             <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
                   content_type="application/x-www-form-urlencoded"
                   contents="user_id=%%_gid%%pack&amp;message=WarmmmlyInvitesTofooooobaaaaaarrahhhrrr"/>
