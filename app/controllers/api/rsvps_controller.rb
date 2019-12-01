@@ -15,14 +15,30 @@ class Api::RsvpsController < ApplicationController
         end
     end
 
-    # GET /rsvps/index
+    # GET /events/{:id}/rsvps/
     def index
         if rsvp_params[:user_id]
             @user = set_user
-            render json: @user.rsvps
+            last_modified = @user.rsvps.order(:updated_at).last
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+            cache_key = "all_rsvps/user:#{invite_params[:user_id]}/event:#{@event.id}/#{last_modified_str}"
+            all_rsvps = Rails.cache.fetch(cache_key) do
+                p "cache miss for GET all rsvp of event: #{@event.id}"
+                @user.rsvps.order("updated_at DESC")
+            end
+
         else
-            render json: @event.rsvps
+            last_modified = @event.rsvps.order(:updated_at).last
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+            cache_key = "all_rsvps/event:#{@event.id}/#{last_modified_str}"
+            all_rsvps = Rails.cache.fetch(cache_key) do
+                p "cache miss for GET ALL rsvps"
+                @event.rsvps.order("updated_at DESC")
+            end
         end
+        render json: all_rsvps
     end
 
     # GET /rsvps/{id}

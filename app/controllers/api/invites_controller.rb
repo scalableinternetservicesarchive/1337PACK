@@ -15,14 +15,31 @@ class Api::InvitesController < ApplicationController
         end
     end
 
-    # GET /invites
+    # GET /events/:event_id/invites
+    # TODO: figure out the logic behind the GETs for invites(user based or invite based - check the endpoint)
     def index
-        if params[:user_id]
+        if invite_params[:user_id]
             @user = set_user
-            render json: @user.invites.order("updated_at DESC")
+            last_modified = @user.invites.order(:updated_at).last
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+            cache_key = "all_invites/user:#{invite_params[:user_id]}/event:#{@event.id}/#{last_modified_str}"
+            all_invites = Rails.cache.fetch(cache_key) do
+                p "cache miss for GET all invites of event: #{@event.id}"
+                @user.invites.order("updated_at DESC")
+            end
+
         else
-            render json: @event.invites
+            last_modified = @event.invites.order(:updated_at).last
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+            cache_key = "all_invites/event:#{@event.id}/#{last_modified_str}"
+            all_invites = Rails.cache.fetch(cache_key) do
+                p "cache miss for GET ALL invites"
+                @event.invites.order("updated_at DESC")
+            end
         end
+        render json: all_invites
     end
 
     # GET /invites/{id}

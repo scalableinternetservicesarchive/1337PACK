@@ -19,10 +19,26 @@ class Api::EventsController < ApplicationController
     def index
         if event_params[:user_id]
             @user = set_user
-            render json: @user.events
+            last_modified = @user.events.order(:updated_at).last
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+            cache_key = "all_events/user:#{event_params[:user_id]}/#{last_modified_str}"
+            all_events = Rails.cache.fetch(cache_key) do
+                p "cache miss for GET all events of user: #{params[:user_id]}"
+                @user.events
+            end
+
         else
-            render json: Event.order("updated_at DESC")
+            last_modified = Event.order(:updated_at).last
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+            
+            cache_key = "all_events/#{last_modified_str}"
+            all_events = Rails.cache.fetch(cache_key) do
+                p "cache miss for GET ALL events"
+                Event.order("updated_at DESC")
+            end
         end
+        render json: all_events
     end
 
     # GET /event/{id}
@@ -52,20 +68,21 @@ class Api::EventsController < ApplicationController
     end
 
     private
-        def set_user
-            @user = Rails.cache.fetch("CACHE_KEY_USER:#{params[:user_id]}", expires_in: 1.hour) do
-                User.find(params[:user_id])
-            end
-        end
 
-        def set_event
-            @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:id]}", expires_in: 1.hour) do
-                p "EVENT CACHE MISS"
-                Event.find(params[:id])
-            end
+    def set_user
+        @user = Rails.cache.fetch("CACHE_KEY_USER:#{params[:user_id]}", expires_in: 1.hour) do
+            User.find(params[:user_id])
         end
+    end
 
-        def event_params
-            params.permit(:host_name, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description, :id)
+    def set_event
+        @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:id]}", expires_in: 1.hour) do
+            p "EVENT CACHE MISS"
+            Event.find(params[:id])
         end
+    end
+
+    def event_params
+        params.permit(:host_name, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description, :id)
+    end
 end
