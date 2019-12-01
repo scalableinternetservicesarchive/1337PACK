@@ -61,10 +61,10 @@ class Api::RsvpsController < ApplicationController
 
     def set_event
         @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:event_id]}", expires_in: 1.hour) do
-            Event.find(params[:event_id])
             p "EVENT CACHE MISS"
+            Event.find(params[:event_id])
+
         end
-        p "EVENT CACHE HIT"
     end
 
     def set_user

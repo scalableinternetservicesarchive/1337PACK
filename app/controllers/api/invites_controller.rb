@@ -59,7 +59,6 @@ class Api::InvitesController < ApplicationController
             p "EVENT CACHE MISS"
             Event.find(params[:event_id])
         end
-        p "EVENT CACHE HIT"
     end
 
     def set_user

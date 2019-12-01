@@ -60,10 +60,9 @@ class Api::EventsController < ApplicationController
 
         def set_event
             @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:id]}", expires_in: 1.hour) do
-                Event.find(params[:id])
                 p "EVENT CACHE MISS"
+                Event.find(params[:id])
             end
-            p "EVENT CACHE HIT"
         end
 
         def event_params
