@@ -54,15 +54,23 @@ class Api::RsvpsController < ApplicationController
     private
 
     def set_rsvp
-        @rsvp = Rsvp.find(params[:id])
+        @rsvp = Rails.cache.fetch("CACHE_KEY_RSVP:#{params[:id]}", expires_in: 1.hour) do
+          Rsvp.find(params[:id])
+        end
     end
 
     def set_event
-        @event = Event.find(params[:event_id])
+        @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:event_id]}", expires_in: 1.hour) do
+            Event.find(params[:event_id])
+            p "EVENT CACHE MISS"
+        end
+        p "EVENT CACHE HIT"
     end
 
     def set_user
-        @user = User.find(params[:user_id])
+        @user = Rails.cache.fetch("CACHE_KEY_USER:#{params[:user_id]}", expires_in: 1.hour) do
+            User.find(params[:user_id])
+        end
     end
     
     def rsvp_params

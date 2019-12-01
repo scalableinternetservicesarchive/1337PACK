@@ -55,19 +55,21 @@ class Api::InvitesController < ApplicationController
     private
 
     def set_event
-        @event = Rails.cache.fetch("CACHE_KEY_EVENT", expires_in: 1.hour) do
-            Event.find(params[:id])
+        @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:event_id]}", expires_in: 1.hour) do
+            p "EVENT CACHE MISS"
+            Event.find(params[:event_id])
         end
+        p "EVENT CACHE HIT"
     end
 
     def set_user
-        @user = Rails.cache.fetch("CACHE_KEY_USER", expires_in: 1.hour) do
+        @user = Rails.cache.fetch("CACHE_KEY_USER:#{params[:user_id]}", expires_in: 1.hour) do
             User.find(params[:user_id])
         end
     end
 
     def set_invite
-        @invite = Rails.cache.fetch("CACHE_KEY_INVITE", expires_in: 1.hour) do
+        @invite = Rails.cache.fetch("CACHE_KEY_INVITE:#{params[:id]}", expires_in: 1.hour) do
             Invite.find(params[:id])
         end
     end

@@ -53,15 +53,17 @@ class Api::EventsController < ApplicationController
 
     private
         def set_user
-            @user = Rails.cache.fetch("CACHE_KEY_USER", expires_in: 1.hour) do
+            @user = Rails.cache.fetch("CACHE_KEY_USER:#{params[:user_id]}", expires_in: 1.hour) do
                 User.find(params[:user_id])
             end
         end
 
         def set_event
-            @event = Rails.cache.fetch("CACHE_KEY_EVENT", expires_in: 1.hour) do
+            @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:id]}", expires_in: 1.hour) do
                 Event.find(params[:id])
+                p "EVENT CACHE MISS"
             end
+            p "EVENT CACHE HIT"
         end
 
         def event_params
