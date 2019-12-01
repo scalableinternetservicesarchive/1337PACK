@@ -55,11 +55,15 @@ class Api::CommentsController < ApplicationController
 
     private
         def set_event
-            @event = Event.find(params[:event_id])
+            @event = Rails.cache.fetch("CACHE_KEY_EVENT", expires_in: 1.hour) do
+                Event.find(params[:event_id])
+            end
         end
 
         def set_comment
-            @comment = Comment.find(params[:id])
+            @comment = Rails.cache.fetch("CACHE_KEY_COMMENT", expires_in: 1.hour) do
+              Comment.find(params[:id])
+            end
         end
 
         def comment_params
