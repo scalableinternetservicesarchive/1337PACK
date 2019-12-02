@@ -7,11 +7,15 @@ class Api::RsvpsController < ApplicationController
 
     # POST /events/:event_id/rsvps
     def create
+        begin
         @rsvp = Rsvp.create!(rsvp_params)
         if @rsvp.save
             render json: @rsvp, status: :created
         else
             render json: @rsvp.errors, status: :unprocessable_entity
+        end
+        rescue ActiveRecord::RecordInvalid => invalid
+            render json: invalid.record.errors, status: :conflict
         end
     end
 

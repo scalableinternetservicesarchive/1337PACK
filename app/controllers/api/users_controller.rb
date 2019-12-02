@@ -2,9 +2,18 @@ class Api::UsersController < ApplicationController
   before_action :set_user, only: [:show, :update, :destroy]
   skip_before_action :verify_authenticity_token
 
+
   def index
-    @users = User.order :last_name, :first_name
-    render json: @users
+    last_modified = User.order(:updated_at).last
+    last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+    cache_key = "all_users/#{last_modified_str}"
+    all_users = Rails.cache.fetch(cache_key) do
+        p "cache miss for GET all users"
+        User.order :last_name, :first_name
+    end
+
+    render json: all_users
   end
 
   def create
