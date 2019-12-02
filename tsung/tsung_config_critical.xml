@@ -13,7 +13,6 @@
     <arrivalphase phase="1" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="1" unit="second"/>
     </arrivalphase>
-
     <arrivalphase phase="2" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="4" unit="second"/>
     </arrivalphase>
@@ -35,12 +34,90 @@
   <options>
     <!--  Set connection timeout to 2 seconds  -->
     <option name="global_ack_timeout" value="2000"/>
+    <option name="file_server" id="uid_file" value="uids.csv"/>
   </options>
 
   <sessions>
+
+    <session name="cache" type="ts_http" weight="1">
+      <setdynvars sourcetype="file" fileid="uid_file" delimiter="," order="iter">
+        <var name="email"/>
+        <var name="password"/>
+      </setdynvars>
+      <!--1. login
+      2. get all events(irrespective of user)
+      3. view event
+      4. rsvp-->
+      <!-- <transaction name="get_all_events">
+         <request subst="true">
+           <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+           <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+           <dyn_variable name="eid_list" jsonpath="$.[*].id"/>
+           <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                 contents="title=ghost_of_xmas_past&amp;host_name=%%_user_id%%pack&amp;location_name=blah_location&amp;street_address=home&amp;start_time=12453543443345&amp;end_time=4553656666&amp;description=25;commit=add_event for user_id: %%_user_id%%"/>
+         </request>
+       </transaction>-->
+      <transaction name="login">
+        <request subst="true">
+          <dyn_variable name="uid" jsonpath="$.uid"/>
+          <http url="/api/auth/login" method="POST" content_type="application/x-www-form-urlencoded" contents="email=%%_email%%&amp;password=%%_password%%"/>
+        </request>
+      </transaction>
+
+      <transaction name="get_all_events">
+        <request subst="true">
+          <dyn_variable name="eid" jsonpath="$.[0].id"/>
+          <http url="/api/events" method="GET"/>
+        </request>
+      </transaction>
+
+      <!--      <setdynvars sourcetype="eval" code="fun({Pid,DynVars})->-->
+      <!--      {ok,events_list}=ts_dynvars:lookup(eidlist,DynVars) end.">-->
+      <!--&lt;!&ndash;                   {ok,events_list} = ts_dynvars:lookup(eidlist,DynVars),&ndash;&gt;-->
+
+      <!--&lt;!&ndash;                   nelement = lists:nth(1,events_list),&ndash;&gt;-->
+      <!--&lt;!&ndash;                   io:format([126, $p, 126, $n, 126, $n], [nelement])end.">&ndash;&gt;-->
+      <!--        <var name="sublist" />-->
+      <!--      </setdynvars>-->
+      <!--      <thinktime random="true" value="3"/>-->
+      <!--      <setdynvars sourcetype="eval" code="fun( {Pid, DynVars} ) ->-->
+      <!--        {ok, eids} = ts_dynvars:lookup(eidlist,DynVars),-->
+      <!--        ok end.">-->
+      <!--        <var name="blah" />-->
+      <!--      </setdynvars>-->
+
+<!--      <foreach name="element" in="eidlist">-->
+        <transaction name="get_single_event">
+          <request subst="true">
+            <http url="/api/events/%%_eid%%" method="GET"/>
+          </request>
+        </transaction>
+        <thinktime value="2" random="true"/>
+
+        <transaction name="send_rsvp">
+          <request subst="true">
+            <http url="/api/events/%%_eid%%/rsvps" method="POST" version="1.1"
+                  content_type="application/x-www-form-urlencoded"
+                  contents="user_id=%%_uid%%&amp;response=yes&amp;guest_name=%%_uid%%-guest"/>
+          </request>
+        </transaction>
+
+<!--        <setdynvars sourcetype="eval" code="fun( {Pid, DynVars} ) ->-->
+<!--              io:format([126, $p, 126, $n, 126, $n],[DynVars]),-->
+<!--              ok end.">-->
+<!--          <var name="blah" />-->
+<!--        </setdynvars>-->
+
+<!--        <if var="element_iter" eq="4">-->
+<!--          <abort type="session"/>-->
+<!--        </if>-->
+
+<!--      </foreach>-->
+
+    </session>
     <!-- ONE
       signup : this will create a user and store the id in uid -->
-    <session name="user_event_invite_create" type="ts_http" weight="1">
+    <session name="user_event_invite_create" type="ts_http" weight="0">
 
       <!-- generate a random number before user creation each time -->
       <setdynvars sourcetype="random_string">
