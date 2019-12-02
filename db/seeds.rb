@@ -2,7 +2,7 @@
 # The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
 #
 
-for i in 1..360
+for i in 1..800
     p "#{i} Aloha! :)"
     @user = User.create!(
             email: "#{i}-hi.pack@g.com",
