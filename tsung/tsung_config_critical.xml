@@ -10,16 +10,16 @@
     <server host="localhost" port="3000" type="tcp"/>
   </servers>
   <load>
-    <arrivalphase phase="1" duration="60" unit="second" wait_all_sessions_end="true">
+    <arrivalphase phase="1" duration="360" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="1" unit="second"/>
     </arrivalphase>
-    <arrivalphase phase="2" duration="60" unit="second" wait_all_sessions_end="true">
+    <!--<arrivalphase phase="2" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="4" unit="second"/>
     </arrivalphase>
 
     <arrivalphase phase="3" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="8" unit="second"/>
-    </arrivalphase>
+    </arrivalphase>-->
     <!--
     <arrivalphase phase="4" duration="60" unit="second" wait_all_sessions_end="true">
       <users arrivalrate="16" unit="second"/>
@@ -35,15 +35,23 @@
     <!--  Set connection timeout to 2 seconds  -->
     <option name="global_ack_timeout" value="2000"/>
     <option name="file_server" id="uid_file" value="uids.csv"/>
+    <option name="file_server" id="eid_file" value="events.csv"/>
   </options>
 
   <sessions>
 
     <session name="cache" type="ts_http" weight="1">
       <setdynvars sourcetype="file" fileid="uid_file" delimiter="," order="iter">
+        <var name="uid" />
         <var name="email"/>
         <var name="password"/>
       </setdynvars>
+
+      <setdynvars sourcetype="file" fileid="eid_file" delimiter="," order="iter">
+        <var name="eid" />
+      </setdynvars>
+
+
       <!--1. login
       2. get all events(irrespective of user)
       3. view event
@@ -59,14 +67,12 @@
        </transaction>-->
       <transaction name="login">
         <request subst="true">
-          <dyn_variable name="uid" jsonpath="$.uid"/>
           <http url="/api/auth/login" method="POST" content_type="application/x-www-form-urlencoded" contents="email=%%_email%%&amp;password=%%_password%%"/>
         </request>
       </transaction>
 
       <transaction name="get_all_events">
         <request subst="true">
-          <dyn_variable name="eid" jsonpath="$.[0].id"/>
           <http url="/api/events" method="GET"/>
         </request>
       </transaction>
