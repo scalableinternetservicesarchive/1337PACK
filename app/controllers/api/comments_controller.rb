@@ -1,3 +1,5 @@
+require "will_paginate"
+
 class Api::CommentsController < ApplicationController
     # do :set_comment function only just before show, edit ... actions
     before_action :set_event, only: [:index]
@@ -19,7 +21,15 @@ class Api::CommentsController < ApplicationController
     # GET /events/:event_id/comments
     def index
         if @event
-            render json: @event.comments
+            last_modified = @event.comments.order(:updated_at).last
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+            cache_key = "comments/#{comment_params[:offset]}/#{last_modified_str}"
+            all_events = Rails.cache.fetch(cache_key) do
+                Rails.logger.info "{CACHE MISS FOR ALL COMMENTS} - EVENT_ID: #{@event.id}"
+                Event.order("updated_at DESC").paginate(:page=>comment_params[:offset], :per_page=>10)
+            end
+            render json: all_events
         else
             render json: @event.errors
         end
@@ -56,7 +66,7 @@ class Api::CommentsController < ApplicationController
     private
         def set_event
             @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:event_id]}", expires_in: 1.hour) do
-                p "EVENT CACHE MISS"
+                Rails.logger.info "{COMMENT CACHE NOT FOUND} - EVENT_ID: #{params[:event_id]}"
                 Event.find(params[:event_id])
             end
         end
@@ -69,6 +79,6 @@ class Api::CommentsController < ApplicationController
 
         def comment_params
             # params needed for create a comment
-            params.permit(:id, :event_id, :user_id, :user_name, :content, :parent_id)
+            params.permit(:id, :offset, :event_id, :user_id, :user_name, :content, :parent_id)
         end
 end

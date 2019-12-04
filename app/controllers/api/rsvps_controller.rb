@@ -1,3 +1,5 @@
+require 'will_paginate'
+
 class Api::RsvpsController < ApplicationController
     before_action :set_rsvp, only: [:show, :update, :destroy]
     before_action :set_event, only: [:index]
@@ -26,20 +28,20 @@ class Api::RsvpsController < ApplicationController
             last_modified = @user.rsvps.order(:updated_at).last
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "all_rsvps/user:#{invite_params[:user_id]}/event:#{@event.id}/#{last_modified_str}"
+            cache_key = "all_rsvps/user:#{rsvp_params[:user_id]}/event:#{@event.id}/#{rsvp_params[:offset]}/#{last_modified_str}"
             all_rsvps = Rails.cache.fetch(cache_key) do
-                p "cache miss for GET all rsvp of event: #{@event.id}"
-                @user.rsvps.order("updated_at DESC")
+                Rails.logger.info "{CACHE MISS FOR ALL RSVPs} - USER_ID: #{rsvp_params[:user_id]}  EVENT_ID:#{@event.id} "
+                @user.rsvps.order("updated_at DESC").paginate(:page=>rsvp_params[:offset], :per_page=>10)
             end
 
         else
             last_modified = @event.rsvps.order(:updated_at).last
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "all_rsvps/event:#{@event.id}/#{last_modified_str}"
+            cache_key = "all_rsvps/#{@event.id}/#{rsvp_params[:offset]}/#{last_modified_str}"
             all_rsvps = Rails.cache.fetch(cache_key) do
-                p "cache miss for GET ALL rsvps"
-                @event.rsvps.order("updated_at DESC")
+                Rails.logger.info "{CACHE MISS FOR RSVPs} - EVENT_ID: #{@event.id}"
+                @event.rsvps.order("updated_at DESC").paginate(:page=>rsvp_params[:offset], :per_page=>10)
             end
         end
         render json: all_rsvps
@@ -81,7 +83,7 @@ class Api::RsvpsController < ApplicationController
 
     def set_event
         @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:event_id]}", expires_in: 1.hour) do
-            p "EVENT CACHE MISS"
+            Rails.logger.info "{CACHE MISS FOR EVENT} - EVENT_ID: #{params[:event_id]}"
             Event.find(params[:event_id])
 
         end
@@ -94,6 +96,6 @@ class Api::RsvpsController < ApplicationController
     end
     
     def rsvp_params
-        params.permit(:response, :num_guests, :guest_name, :event_id, :user_id)
+        params.permit(:offset, :response, :num_guests, :guest_name, :event_id, :user_id)
     end
 end

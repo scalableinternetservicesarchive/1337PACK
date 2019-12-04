@@ -1,3 +1,5 @@
+require "will_paginate"
+
 class Api::InvitesController < ApplicationController
     before_action :set_invite, only: [:show, :update, :destroy]
     before_action :set_event, only: [:index]
@@ -23,20 +25,20 @@ class Api::InvitesController < ApplicationController
             last_modified = @user.invites.order(:updated_at).last
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "all_invites/user:#{invite_params[:user_id]}/event:#{@event.id}/#{last_modified_str}"
+            cache_key = "user_invites/#{invite_params[:user_id]}/#{@event.id}/#{invite_params[:offset]}/#{last_modified_str}"
             all_invites = Rails.cache.fetch(cache_key) do
-                p "cache miss for GET all invites of event: #{@event.id}"
-                @user.invites.order("updated_at DESC")
+                Rails.logger.info "{CACHE MISS FOR INVITE} - USER_ID: #{invite_params[:user_id]} EVENT_ID: #{@event.id}"
+                @user.invites.order("updated_at DESC").paginate(:page=>invite_params[:offset],:per_page=>10)
             end
 
         else
             last_modified = @event.invites.order(:updated_at).last
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "all_invites/event:#{@event.id}/#{last_modified_str}"
+            cache_key = "all_invites/#{@event.id}/#{invite_params[:offset]}/#{last_modified_str}"
             all_invites = Rails.cache.fetch(cache_key) do
-                p "cache miss for GET ALL invites"
-                @event.invites.order("updated_at DESC")
+                Rails.logger.info "{CACHE MISS FOR ALL INVITES} - EVENT_ID: #{@event.id}"
+                @event.invites.order("updated_at DESC").paginate(:page=>invite_params[:offset],:per_page=>10)
             end
         end
         render json: all_invites
@@ -73,7 +75,7 @@ class Api::InvitesController < ApplicationController
 
     def set_event
         @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:event_id]}", expires_in: 1.hour) do
-            p "EVENT CACHE MISS"
+            Rails.logger.info "{INVITE CACHE NOT FOUND} - EVENT_ID: #{params[:id]}"
             Event.find(params[:event_id])
         end
     end
@@ -92,7 +94,7 @@ class Api::InvitesController < ApplicationController
 
     def invite_params
         # params needed for create a invite
-        params.permit(:id, :event_id, :guest_email, :user_id, :message)
+        params.permit(:id, :offset, :event_id, :guest_email, :user_id, :message)
     end
 
 end
