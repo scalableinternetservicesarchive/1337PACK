@@ -1,3 +1,5 @@
+require 'will_paginate'
+
 class Api::InvitesController < ApplicationController
     before_action :set_invite, only: [:show, :update, :destroy]
     before_action :set_event, only: [:index]
@@ -19,9 +21,9 @@ class Api::InvitesController < ApplicationController
     def index
         if params[:user_id]
             @user = set_user
-            render json: @user.invites.order("updated_at DESC")
+            render json: @user.invites.order("updated_at DESC").paginate(:page=>invite_params[:offset], :per_page=>10)
         else
-            render json: @event.invites
+            render json: @event.invites.paginate(:page=>invite_params[:offset], :per_page=>10)
         end
     end
 
@@ -68,7 +70,7 @@ class Api::InvitesController < ApplicationController
 
     def invite_params
         # params needed for create a invite
-        params.permit(:id, :event_id, :guest_email, :user_id, :message)
+        params.permit(:id, :offset, :event_id, :guest_email, :user_id, :message)
     end
 
 end

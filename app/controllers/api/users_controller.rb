@@ -1,9 +1,11 @@
+require 'will_paginate'
+
 class Api::UsersController < ApplicationController
   before_action :set_user, only: [:show, :update, :destroy]
   skip_before_action :verify_authenticity_token
 
   def index
-    @users = User.order :last_name, :first_name
+    @users = User.order(:last_name, :first_name).paginate(:page=>user_params[:offset], :per_page=>10)
     render json: @users
   end
 
@@ -43,7 +45,7 @@ class Api::UsersController < ApplicationController
   private
 
   def user_params
-    params.permit(:email, :password, :password_confirmation, :first_name, :last_name)
+    params.permit(:email, :offset, :password, :password_confirmation, :first_name, :last_name)
   end
 
   def set_user
