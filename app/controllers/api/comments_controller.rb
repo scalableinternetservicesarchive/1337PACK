@@ -22,6 +22,9 @@ class Api::CommentsController < ApplicationController
     def index
         if @event
             last_modified = @event.comments.order(:updated_at).last
+            if last_modified == nil
+                render json: {"message": "no comment exists for the event: #{@event.id}"}, status: :ok
+            else
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
             cache_key = "comments/#{comment_params[:offset]}/#{last_modified_str}"
@@ -30,6 +33,7 @@ class Api::CommentsController < ApplicationController
                 Event.order("updated_at DESC").paginate(:page=>comment_params[:offset], :per_page=>10)
             end
             render json: all_events
+            end
         else
             render json: @event.errors
         end
