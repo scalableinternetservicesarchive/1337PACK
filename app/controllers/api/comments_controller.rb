@@ -1,3 +1,5 @@
+require 'will_paginate'
+
 class Api::CommentsController < ApplicationController
     # do :set_comment function only just before show, edit ... actions
     before_action :set_event, only: [:index]
@@ -19,7 +21,7 @@ class Api::CommentsController < ApplicationController
     # GET /events/:event_id/comments
     def index
         if @event
-            render json: @event.comments
+            render json: @event.comments.paginate(:page=>comment_params[:offset],:per_page=>100)
         else
             render json: @event.errors
         end
@@ -64,6 +66,6 @@ class Api::CommentsController < ApplicationController
 
         def comment_params
             # params needed for create a comment
-            params.permit(:id, :event_id, :user_id, :user_name, :content, :parent_id)
+            params.permit(:id, :offset, :event_id, :user_id, :user_name, :content, :parent_id)
         end
 end

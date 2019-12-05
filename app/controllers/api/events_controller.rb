@@ -1,3 +1,5 @@
+require 'will_paginate'
+
 class Api::EventsController < ApplicationController
     before_action :set_event, only: [:show, :edit, :update, :destroy]
     # TODO: Remove this check
@@ -19,9 +21,9 @@ class Api::EventsController < ApplicationController
     def index
         if event_params[:user_id]
             @user = set_user
-            render json: @user.events
+            render json: @user.events.paginate(:page=>event_params[:offset],:per_page=>100)
         else
-            render json: Event.order("updated_at DESC")
+            render json: Event.order("updated_at DESC").paginate(:page=>event_params[:offset], :per_page=>100)
         end
     end
 
@@ -61,6 +63,6 @@ class Api::EventsController < ApplicationController
         end
 
         def event_params
-            params.permit(:host_name, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description, :id)
+            params.permit(:host_name, :offset, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description, :id)
         end
 end

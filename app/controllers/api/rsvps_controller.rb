@@ -1,3 +1,5 @@
+require 'will_paginate'
+
 class Api::RsvpsController < ApplicationController
     before_action :set_rsvp, only: [:show, :update, :destroy]
     before_action :set_event, only: [:index]
@@ -19,9 +21,9 @@ class Api::RsvpsController < ApplicationController
     def index
         if rsvp_params[:user_id]
             @user = set_user
-            render json: @user.rsvps
+            render json: @user.rsvps.paginate(:page =>rsvp_params[:offset], :per_page=>100)
         else
-            render json: @event.rsvps
+            render json: @event.rsvps.paginate(:page =>rsvp_params[:offset], :per_page=>100)
         end
     end
 
@@ -66,6 +68,6 @@ class Api::RsvpsController < ApplicationController
     end
     
     def rsvp_params
-        params.permit(:response, :num_guests, :guest_name, :event_id, :user_id)
+        params.permit(:response, :offset,:num_guests, :guest_name, :event_id, :user_id)
     end
 end
