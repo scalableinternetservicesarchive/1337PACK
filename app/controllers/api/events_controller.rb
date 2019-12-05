@@ -21,9 +21,9 @@ class Api::EventsController < ApplicationController
     def index
         if event_params[:user_id]
             @user = set_user
-            render json: @user.events.paginate(:page=>event_params[:offset],:per_page=>10)
+            render json: @user.events.paginate(:page=>event_params[:offset],:per_page=>100)
         else
-            render json: Event.order("updated_at DESC").paginate(:page=>event_params[:offset], :per_page=>10)
+            render json: Event.order("updated_at DESC").paginate(:page=>event_params[:offset], :per_page=>100)
         end
     end
 

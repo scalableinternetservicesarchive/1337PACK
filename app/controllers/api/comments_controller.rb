@@ -21,7 +21,7 @@ class Api::CommentsController < ApplicationController
     # GET /events/:event_id/comments
     def index
         if @event
-            render json: @event.comments.paginate(:page=>comment_params[:offset],:per_page=>10)
+            render json: @event.comments.paginate(:page=>comment_params[:offset],:per_page=>100)
         else
             render json: @event.errors
         end

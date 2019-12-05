@@ -21,9 +21,9 @@ class Api::InvitesController < ApplicationController
     def index
         if params[:user_id]
             @user = set_user
-            render json: @user.invites.order("updated_at DESC").paginate(:page=>invite_params[:offset], :per_page=>10)
+            render json: @user.invites.order("updated_at DESC").paginate(:page=>invite_params[:offset], :per_page=>100)
         else
-            render json: @event.invites.paginate(:page=>invite_params[:offset], :per_page=>10)
+            render json: @event.invites.paginate(:page=>invite_params[:offset], :per_page=>100)
         end
     end
 

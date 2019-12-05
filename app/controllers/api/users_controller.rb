@@ -5,7 +5,7 @@ class Api::UsersController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    @users = User.order(:last_name, :first_name).paginate(:page=>user_params[:offset], :per_page=>10)
+    @users = User.order(:last_name, :first_name).paginate(:page=>user_params[:offset], :per_page=>100)
     render json: @users
   end
 
