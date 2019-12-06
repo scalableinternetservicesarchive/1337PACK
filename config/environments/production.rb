@@ -81,8 +81,8 @@ Rails.application.configure do
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
   # # http://redis-1337pack-high.dgkfha.ng.0001.usw2.cache.amazonaws.com/
-  config.cache_store = :redis_store, "#{ENV.fetch('AWS_REDIS_HOST', 'redis://redis-1337pack-high.dgkfha.ng.0001.usw2.cache.amazonaws.com:6379')}", { expires_in: 90.minutes }
-  config.active_record.cache_versioning = false
+  # config.cache_store = :redis_store, "#{ENV.fetch('AWS_REDIS_HOST', 'redis://redis-1337pack-high.dgkfha.ng.0001.usw2.cache.amazonaws.com:6379')}", { expires_in: 90.minutes }
+  # config.active_record.cache_versioning = false
   if ENV["RAILS_LOG_TO_STDOUT"].present?
     logger           = ActiveSupport::Logger.new(STDOUT)
     logger.formatter = config.log_formatter
