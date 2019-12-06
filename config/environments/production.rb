@@ -80,7 +80,7 @@ Rails.application.configure do
   # Use a different logger for distributed setups.
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
-  config.cache_store = :redis_store, "#{ENV.fetch('AWS_REDIS_HOST', 'redis-1337pack.dgkfha.ng.0001.usw2.cache.amazonaws.com:6379')}", { expires_in: 90.minutes }
+  config.cache_store = :redis_store, "#{ENV.fetch('AWS_REDIS_HOST', 'redis://redis-1337pack.dgkfha.ng.0001.usw2.cache.amazonaws.com:6379')}", { expires_in: 90.minutes }
 
   if ENV["RAILS_LOG_TO_STDOUT"].present?
     logger           = ActiveSupport::Logger.new(STDOUT)
