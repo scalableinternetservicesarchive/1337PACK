@@ -1,3 +1,5 @@
+require 'will_paginate'
+
 class Api::UsersController < ApplicationController
   before_action :set_user, only: [:show, :update, :destroy]
   skip_before_action :verify_authenticity_token
@@ -7,10 +9,10 @@ class Api::UsersController < ApplicationController
     last_modified = User.order(:updated_at).last
     last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-    cache_key = "all_users/#{last_modified_str}"
+    cache_key = "all_users/#{user_params[:offset]}/#{last_modified_str}"
     all_users = Rails.cache.fetch(cache_key) do
-        p "cache miss for GET all users"
-        User.order :last_name, :first_name
+        Rails.logger.info '{CACHE MISS FOR ALL USERS}'
+        User.order(:last_name, :first_name).paginate(:page=>user_params[:offset], :per_page=>10)
     end
 
     render json: all_users
@@ -52,7 +54,7 @@ class Api::UsersController < ApplicationController
   private
 
   def user_params
-    params.permit(:email, :password, :password_confirmation, :first_name, :last_name)
+    params.permit(:offset, :email, :password, :password_confirmation, :first_name, :last_name)
   end
 
   def set_user

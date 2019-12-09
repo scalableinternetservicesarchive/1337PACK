@@ -1,3 +1,5 @@
+require "will_paginate"
+
 class Api::EventsController < ApplicationController
     before_action :set_event, only: [:show, :edit, :update, :destroy]
     # TODO: Remove this check
@@ -22,10 +24,10 @@ class Api::EventsController < ApplicationController
             last_modified = @user.events.order(:updated_at).last
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "all_events/user:#{event_params[:user_id]}/#{last_modified_str}"
+            cache_key = "user_events/#{event_params[:user_id]}/#{event_params[:offset]}/#{last_modified_str}"
             all_events = Rails.cache.fetch(cache_key) do
-                p "cache miss for GET all events of user: #{params[:user_id]}"
-                @user.events
+                Rails.logger.info "{CACHE MISS FOR ALL EVENTS} - USER_ID: #{event_params[:user_id]}"
+                @user.events.paginate(:page=>event_params[:offset], :per_page=>10)
             end
 
         else
@@ -34,8 +36,8 @@ class Api::EventsController < ApplicationController
             
             cache_key = "all_events/#{last_modified_str}"
             all_events = Rails.cache.fetch(cache_key) do
-                p "cache miss for GET ALL events"
-                Event.order("updated_at DESC")
+                Rails.logger.info "{CACHED MISS FOR ALL EVENTS} "
+                Event.order("updated_at DESC").paginate(:page=>event_params[:offset], :per_page=>10)
             end
         end
         render json: all_events
@@ -70,19 +72,20 @@ class Api::EventsController < ApplicationController
     private
 
     def set_user
-        @user = Rails.cache.fetch("CACHE_KEY_USER:#{params[:user_id]}", expires_in: 1.hour) do
+        @user = Rails.cache.fetch("CACHE_KEY_USER/#{params[:user_id]}", expires_in: 1.hour) do
+            Rails.logger.info "{CACHE NOT FOUND} - USER_ID: #{params[:user_id]}"
             User.find(params[:user_id])
         end
     end
 
     def set_event
-        @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:id]}", expires_in: 1.hour) do
-            p "EVENT CACHE MISS"
+        @event = Rails.cache.fetch("CACHE_KEY_EVENT/#{params[:id]}", expires_in: 1.hour) do
+            Rails.logger.info "{CACHE NOT FOUND} - EVENT_ID: #{params[:id]}"
             Event.find(params[:id])
         end
     end
 
     def event_params
-        params.permit(:host_name, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description, :id)
+        params.permit(:offset, :host_name, :user_id, :location_name, :street_address, :start_time, :end_time, :title, :description, :id)
     end
 end
