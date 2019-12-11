@@ -1,6 +1,8 @@
+require "will_paginate"
+
 class Api::CommentsController < ApplicationController
     # do :set_comment function only just before show, edit ... actions
-    before_action :set_event, only: [:index, :create]
+    before_action :set_event, only: [:index]
     before_action :set_comment, only: [:show, :update, :destroy]
 
     # allow following to diable authentification
@@ -8,7 +10,7 @@ class Api::CommentsController < ApplicationController
 
     # POST /events/:event_id/comments
     def create
-        @comment = @event.comments.build(comment_params)
+        @comment = Comment.create!(comment_params)
         if @comment.save
             render json: @comment, status: :created
         else
@@ -19,7 +21,19 @@ class Api::CommentsController < ApplicationController
     # GET /events/:event_id/comments
     def index
         if @event
-            render json: @event.comments
+            last_modified = @event.comments.order(:updated_at).last
+            if last_modified == nil
+                render json: {"message": "no comment exists for the event: #{@event.id}"}, status: :ok
+            else
+            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+
+            cache_key = "comments/#{comment_params[:offset]}/#{last_modified_str}"
+            all_events = Rails.cache.fetch(cache_key) do
+                Rails.logger.info "{CACHE MISS FOR ALL COMMENTS} - EVENT_ID: #{@event.id}"
+                Event.order("updated_at DESC").paginate(:page=>comment_params[:offset], :per_page=>10)
+            end
+            render json: all_events
+            end
         else
             render json: @event.errors
         end
@@ -55,15 +69,20 @@ class Api::CommentsController < ApplicationController
 
     private
         def set_event
-            @event = Event.find(params[:event_id])
+            @event = Rails.cache.fetch("CACHE_KEY_EVENT:#{params[:event_id]}", expires_in: 1.hour) do
+                Rails.logger.info "{COMMENT CACHE NOT FOUND} - EVENT_ID: #{params[:event_id]}"
+                Event.find(params[:event_id])
+            end
         end
 
         def set_comment
-            @comment = Comment.find(params[:id])
+            @comment = Rails.cache.fetch("CACHE_KEY_COMMENT:#{params[:id]}", expires_in: 1.hour) do
+              Comment.find(params[:id])
+            end
         end
 
         def comment_params
             # params needed for create a comment
-            params.permit(:id, :event_id, :user_id, :user_name, :content, :parent_id)
+            params.permit(:id, :offset, :event_id, :user_id, :user_name, :content, :parent_id)
         end
 end
