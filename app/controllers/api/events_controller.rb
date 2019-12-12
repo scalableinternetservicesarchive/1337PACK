@@ -22,22 +22,26 @@ class Api::EventsController < ApplicationController
         if event_params[:user_id]
             @user = set_user
             last_modified = @user.events.order(:updated_at).last
-            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+            if last_modified == nil
+                render json: {"message": "no comment exists for the event: #{@event.id}"}, status: :ok
+            else
+                last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "user_events/#{event_params[:user_id]}/#{event_params[:offset]}/#{last_modified_str}"
-            all_events = Rails.cache.fetch(cache_key) do
-                Rails.logger.info "{CACHE MISS FOR ALL EVENTS} - USER_ID: #{event_params[:user_id]}"
-                @user.events.paginate(:page=>event_params[:offset], :per_page=>10)
+                cache_key = "user_events/#{event_params[:user_id]}/#{event_params[:offset]}/#{last_modified_str}"
+                all_events = Rails.cache.fetch(cache_key) do
+                    Rails.logger.info "{CACHE MISS FOR ALL EVENTS} - USER_ID: #{event_params[:user_id]}"
+                    @user.events.paginate(:page => event_params[:offset], :per_page => 10)
+                end
             end
 
         else
             last_modified = Event.order(:updated_at).last
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
-            
+
             cache_key = "all_events/#{last_modified_str}"
             all_events = Rails.cache.fetch(cache_key) do
                 Rails.logger.info "{CACHED MISS FOR ALL EVENTS} "
-                Event.order("updated_at DESC").paginate(:page=>event_params[:offset], :per_page=>10)
+                Event.order("updated_at DESC").paginate(:page => event_params[:offset], :per_page => 10)
             end
         end
         render json: all_events

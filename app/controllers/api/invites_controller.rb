@@ -23,12 +23,16 @@ class Api::InvitesController < ApplicationController
         if invite_params[:user_id]
             @user = set_user
             last_modified = @user.invites.order(:updated_at).last
-            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+            if last_modified == nil
+                render json: {"message": "no invite exists for the event: #{@event.id}"}, status: :ok
+            else
+                last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "user_invites/#{invite_params[:user_id]}/#{@event.id}/#{invite_params[:offset]}/#{last_modified_str}"
-            all_invites = Rails.cache.fetch(cache_key) do
-                Rails.logger.info "{CACHE MISS FOR INVITE} - USER_ID: #{invite_params[:user_id]} EVENT_ID: #{@event.id}"
-                @user.invites.order("updated_at DESC").paginate(:page=>invite_params[:offset],:per_page=>10)
+                cache_key = "user_invites/#{invite_params[:user_id]}/#{@event.id}/#{invite_params[:offset]}/#{last_modified_str}"
+                all_invites = Rails.cache.fetch(cache_key) do
+                    Rails.logger.info "{CACHE MISS FOR INVITE} - USER_ID: #{invite_params[:user_id]} EVENT_ID: #{@event.id}"
+                    @user.invites.order("updated_at DESC").paginate(:page => invite_params[:offset], :per_page => 10)
+                end
             end
 
         else
@@ -38,7 +42,7 @@ class Api::InvitesController < ApplicationController
             cache_key = "all_invites/#{@event.id}/#{invite_params[:offset]}/#{last_modified_str}"
             all_invites = Rails.cache.fetch(cache_key) do
                 Rails.logger.info "{CACHE MISS FOR ALL INVITES} - EVENT_ID: #{@event.id}"
-                @event.invites.order("updated_at DESC").paginate(:page=>invite_params[:offset],:per_page=>10)
+                @event.invites.order("updated_at DESC").paginate(:page => invite_params[:offset], :per_page => 10)
             end
         end
         render json: all_invites

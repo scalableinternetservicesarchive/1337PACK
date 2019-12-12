@@ -26,14 +26,17 @@ class Api::RsvpsController < ApplicationController
         if rsvp_params[:user_id]
             @user = set_user
             last_modified = @user.rsvps.order(:updated_at).last
-            last_modified_str = last_modified.updated_at.utc.to_s(:number)
+            if last_modified == nil
+                render json: {"message": "no rsvp exists for the event: #{@event.id}"}, status: :ok
+            else
+                last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
-            cache_key = "all_rsvps/user:#{rsvp_params[:user_id]}/event:#{@event.id}/#{rsvp_params[:offset]}/#{last_modified_str}"
-            all_rsvps = Rails.cache.fetch(cache_key) do
-                Rails.logger.info "{CACHE MISS FOR ALL RSVPs} - USER_ID: #{rsvp_params[:user_id]}  EVENT_ID:#{@event.id} "
-                @user.rsvps.order("updated_at DESC").paginate(:page=>rsvp_params[:offset], :per_page=>10)
+                cache_key = "all_rsvps/user:#{rsvp_params[:user_id]}/event:#{@event.id}/#{rsvp_params[:offset]}/#{last_modified_str}"
+                all_rsvps = Rails.cache.fetch(cache_key) do
+                    Rails.logger.info "{CACHE MISS FOR ALL RSVPs} - USER_ID: #{rsvp_params[:user_id]}  EVENT_ID:#{@event.id} "
+                    @user.rsvps.order("updated_at DESC").paginate(:page=>rsvp_params[:offset], :per_page=>10)
+                end
             end
-
         else
             last_modified = @event.rsvps.order(:updated_at).last
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
