@@ -27,7 +27,7 @@ class Api::RsvpsController < ApplicationController
             @user = set_user
             last_modified = @user.rsvps.order(:updated_at).last
             if last_modified == nil
-                render json: {"message": "no rsvp exists for the event: #{@event.id}"}, status: :ok
+              all_rsvps = []
             else
                 last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
@@ -39,12 +39,16 @@ class Api::RsvpsController < ApplicationController
             end
         else
             last_modified = @event.rsvps.order(:updated_at).last
-            last_modified_str = last_modified.updated_at.utc.to_s(:number)
-
-            cache_key = "all_rsvps/#{@event.id}/#{rsvp_params[:offset]}/#{last_modified_str}"
-            all_rsvps = Rails.cache.fetch(cache_key) do
+            if last_modified == nil
+              all_rsvps = []
+            else
+              last_modified_str = last_modified.updated_at.utc.to_s(:number)
+            
+              cache_key = "all_rsvps/#{@event.id}/#{rsvp_params[:offset]}/#{last_modified_str}"
+              all_rsvps = Rails.cache.fetch(cache_key) do
                 Rails.logger.info "{CACHE MISS FOR RSVPs} - EVENT_ID: #{@event.id}"
                 @event.rsvps.order("updated_at DESC").paginate(:page=>rsvp_params[:offset], :per_page=>10)
+              end
             end
         end
         render json: all_rsvps

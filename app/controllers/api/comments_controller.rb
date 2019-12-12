@@ -23,7 +23,7 @@ class Api::CommentsController < ApplicationController
         if @event
             last_modified = @event.comments.order(:updated_at).last
             if last_modified == nil
-                render json: {"message": "no comment exists for the event: #{@event.id}"}, status: :ok
+                render json: [], status: :ok
             else
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
