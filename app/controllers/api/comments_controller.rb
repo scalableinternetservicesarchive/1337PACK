@@ -6,7 +6,7 @@ class Api::CommentsController < ApplicationController
     before_action :set_comment, only: [:show, :update, :destroy]
 
     # allow following to diable authentification
-    skip_before_action :verify_authenticity_token
+    #skip_before_action :verify_authenticity_token
 
     # POST /events/:event_id/comments
     def create
@@ -28,14 +28,14 @@ class Api::CommentsController < ApplicationController
             last_modified_str = last_modified.updated_at.utc.to_s(:number)
 
             cache_key = "comments/#{comment_params[:offset]}/#{last_modified_str}"
-            all_events = Rails.cache.fetch(cache_key) do
+            all_comments = Rails.cache.fetch(cache_key) do
                 Rails.logger.info "{CACHE MISS FOR ALL COMMENTS} - EVENT_ID: #{@event.id}"
-                Event.order("updated_at DESC").paginate(:page=>comment_params[:offset], :per_page=>10)
+                Comment.order("updated_at DESC").paginate(:page=>comment_params[:offset], :per_page=>10)
             end
-            render json: all_events
+            render json: all_comments
             end
         else
-            render json: @event.errors
+            render json: @comment.errors
         end
     end
 
