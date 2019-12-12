@@ -1,20 +1,14 @@
 import React from "react";
 import Cookies from "universal-cookie";
 import useForm from "react-hook-form";
-import { withRouter } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
-import AddIcon from "@material-ui/icons/Add";
-import AppBar from "@material-ui/core/AppBar";
 import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import AppBar from "@material-ui/core/AppBar";
 import Container from "@material-ui/core/Container";
 import CloseIcon from "@material-ui/icons/Close";
-import Dialog from "@material-ui/core/Dialog";
 import IconButton from "@material-ui/core/IconButton";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
 import Slide from "@material-ui/core/Slide";
-import Snackbar from "@material-ui/core/Snackbar";
 import TextField from "@material-ui/core/TextField";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
@@ -22,14 +16,6 @@ import DateFnsUtils from "@date-io/date-fns";
 import { MuiPickersUtilsProvider, DateTimePicker } from "@material-ui/pickers";
 
 const cookies = new Cookies();
-
-function getUID() {
-  if (cookies.get("JWT") == null) {
-    return null;
-  } else {
-    return cookies.get("UID");
-  }
-}
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -58,10 +44,9 @@ const defaultValues = {
   start_time: new Date()
 };
 
-function EventCompose(props) {
+function EventEdit({ event }) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const { register, handleSubmit, errors, getValues, setValue } = useForm({
     defaultValues
   });
@@ -74,19 +59,11 @@ function EventCompose(props) {
     setOpen(false);
   };
 
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
-
   const onSubmit = data => {
-    const uid = getUID();
-    if (uid !== null) {
-      data.user_id = uid;
-    }
-    const url = "/api/events";
+    const url = `/api/events/${event.id}`;
     const token = document.querySelector('meta[name="csrf-token"]').content;
     fetch(url, {
-      method: "POST",
+      method: "PUT",
       headers: {
         "X-CSRF-Token": token,
         "Content-Type": "application/json"
@@ -96,12 +73,10 @@ function EventCompose(props) {
       .then(response => {
         if (response.ok) {
           setOpen(false);
-          setSnackbarOpen(true);
           return response.json();
         }
         throw new Error("Network response was not ok.");
       })
-      .then(response => props.history.push("/"))
       .catch(error => console.log(error.message));
   };
 
@@ -113,32 +88,12 @@ function EventCompose(props) {
     register({ name: "start_time", type: "datetime-local" });
   });
 
-  const values = getValues();
-
   return (
     <div>
-      <Snackbar
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left"
-        }}
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={handleSnackbarClose}
-        message="New event posted"
-      />
-      {props.onDrawer ? (
-        <ListItem button key="Post Event" onClick={handleClickOpen}>
-          <ListItemIcon>
-            <AddIcon />
-          </ListItemIcon>
-          <ListItemText primary="Post Event" />
-        </ListItem>
-      ) : (
-        <Button variant="contained" color="primary" onClick={handleClickOpen}>
-          Post New Event
-        </Button>
-      )}
+      <Button color="primary" size="small" onClick={handleClickOpen}>
+        Edit
+      </Button>
+
       <Dialog
         fullScreen
         open={open}
@@ -156,7 +111,7 @@ function EventCompose(props) {
               <CloseIcon />
             </IconButton>
             <Typography variant="h6" className={classes.title}>
-              New event
+              Update event
             </Typography>
           </Toolbar>
         </AppBar>
@@ -176,6 +131,7 @@ function EventCompose(props) {
                 name="title"
                 label="Event Title"
                 autoFocus
+                defaultValue={event && event.title}
                 inputRef={register({ required: true })}
               />
               {errors.title && "Title is required."}
@@ -189,6 +145,7 @@ function EventCompose(props) {
                 name="host_name"
                 label="Hosted By"
                 autoFocus
+                defaultValue={event && event.host_name}
                 inputRef={register({ required: true })}
               />
               {errors.host_name && "Host name is required."}
@@ -202,7 +159,7 @@ function EventCompose(props) {
                   margin="normal"
                   required
                   fullWidth
-                  value={values.start_time}
+                  value={event && event.start_time}
                   onChange={handleDateChange}
                 />
               </MuiPickersUtilsProvider>
@@ -215,6 +172,7 @@ function EventCompose(props) {
                 name="location_name"
                 label="Location"
                 autoFocus
+                defaultValue={event && event.location_name}
                 inputRef={register}
               />
 
@@ -226,6 +184,7 @@ function EventCompose(props) {
                 name="street_address"
                 label="Street Address"
                 autoFocus
+                defaultValue={event && event.street_address}
                 inputRef={register}
               />
 
@@ -238,6 +197,7 @@ function EventCompose(props) {
                 multiline
                 fullWidth
                 autoFocus
+                defaultValue={event && event.description}
                 inputRef={register}
               />
 
@@ -248,7 +208,7 @@ function EventCompose(props) {
                 color="primary"
                 className={classes.submit}
               >
-                Post
+                Confirm
               </Button>
             </form>
           </div>
@@ -258,4 +218,4 @@ function EventCompose(props) {
   );
 }
 
-export default withRouter(EventCompose);
+export default EventEdit;
