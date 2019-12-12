@@ -6,7 +6,7 @@ class Api::CommentsController < ApplicationController
     before_action :set_comment, only: [:show, :update, :destroy]
 
     # allow following to diable authentification
-    skip_before_action :verify_authenticity_token
+    #skip_before_action :verify_authenticity_token
 
     # POST /events/:event_id/comments
     def create

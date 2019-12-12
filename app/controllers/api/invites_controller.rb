@@ -5,7 +5,7 @@ class Api::InvitesController < ApplicationController
     before_action :set_event, only: [:index]
 
     # allow following to diable authentification
-    skip_before_action :verify_authenticity_token
+    #skip_before_action :verify_authenticity_token
 
     # POST /events/:event_id/invites
     def create

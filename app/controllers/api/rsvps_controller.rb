@@ -5,7 +5,7 @@ class Api::RsvpsController < ApplicationController
     before_action :set_event, only: [:index]
 
     # TODO: Remove this check
-    skip_before_action :verify_authenticity_token
+    #skip_before_action :verify_authenticity_token
 
     # POST /events/:event_id/rsvps
     def create

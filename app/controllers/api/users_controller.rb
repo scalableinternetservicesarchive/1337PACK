@@ -2,7 +2,7 @@ require 'will_paginate'
 
 class Api::UsersController < ApplicationController
     before_action :set_user, only: [:show, :update, :destroy]
-    skip_before_action :verify_authenticity_token
+    #skip_before_action :verify_authenticity_token
 
 
     def index
