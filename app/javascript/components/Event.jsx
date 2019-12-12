@@ -24,6 +24,7 @@ import CommentSection from "./CommentSection";
 import RsvpCompose from "./RsvpCompose";
 import RsvpSection from "./RsvpSection";
 import InviteCompose from "./InviteCompose";
+import EventEdit from "./EventEdit";
 
 const cookies = new Cookies();
 
@@ -186,9 +187,7 @@ function Event(props) {
                     {currentUser == event.user_id && (
                       <>
                         <InviteCompose event_id={id} />
-                        <Button size="small" color="primary">
-                          Edit
-                        </Button>
+                        <EventEdit event={event}/>
                       </>
                     )}
                   </CardActions>
