@@ -1,76 +1,174 @@
-### **Orchestration**
+# README
 
-##### Get PG up and running
-```
-docker run postgres  
-docker-compose build web  
-docker-compose run web rails new . --no-deps --database postgres  
-```  
+This is a basic setup of rails with react as frontend. Please follow the steps:
 
-While debugging, if you encounter PSQL issues, it doesn't mean you wait for the server
-to come up each time before you hit the issue. Instead, try to create the DB -   
+## Creating a new rails application using Docker
 
-`docker-compose run web rails db:create`
+### Prepare the project directory
 
-This creates the database: app_developement and app_test - this is needed to run the app
-Make sure to add `host: db` and `username: postgres` in the config/database.yml file
-
-##### Start the web app container  
-
-This step doesn't do any port-forwarding  
-`docker-compose run web rails s -b 0.0.0.0`
-
-Start the container and attach it. Port forwarding works here  
-`docker-compose up`
-
-to see the routes - 
-`docker-compose run web rails routes`
-
-OR 
-```
-docker-compose run web /bin/bash    
-rails routes
+```shell
+mkdir PROJECTNAME
+cd PROJECTNAME
+touch Dockerfile Gemfile Gemfile.lock docker-compose.yml
 ```
 
-The following 2 commands can be used to verfiy that our data is persisting when containers are 
-shut-down or brought back up  
-`docker-compose down
-docker-compose up`
+Copy the following contents into `Dockerfile`:
 
-load the localhost:3000/tweets page again, and it should work  
+```dockerfile
+FROM ruby
 
-We can make a tiny change to the routes.rb file and add the following line to it if we want localhost:3000 to redirect
-to the /tweets page  
-`root "tweets#index"`
-This would require a change in a lot of places(the html files where we are redirecting back to the index page)  
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add \
+  && echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+  && apt-get update && apt-get install -y nodejs yarn --no-install-recommends \
+  && gem install rails
 
-##### MODEL OPERATIONS
+WORKDIR /app
 
-Once PG and web app containers are up and running, let's create the models.  
-Keep in mind that with every change made to the migration files, migration has to be run.  
-Also, a new migration file needs to be created for every migration.  
+COPY Gemfile Gemfile.lock /app/
+RUN bundle install
 
-Creating a scaffolding takes care of initializing the model and creating respective views   
-`rails generate scaffold User username:string password:string`  
-Scaffolding automatically adds an id to the table, no need to create that 
-
-
-###### **CREATE MODELS**
+CMD ["/bin/bash"]
 ```
-rails g scaffold User username:string password:string  
-rails g scaffold Comment 
-rails g scaffold Invite 
-rails g scaffold Rsvp answer:boolean
-rails g scaffold Event venue:string
+
+Copy the following contents into `docker-compose.yml`:
+
+```yaml
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app:delegated
+version: '3'
 ```
+
+Initialize your git repository and make an initial commit:
+
+```shell
+git init
+git add .
+git commit -m "Prepare the project directory"
+```
+
+### Create the rails project
+
+First build the `web` container image using `docker-compose`:
+
+```shell
+docker-compose build web
+```
+
+Then run `rails new` to create the initial rails project:
+
+```shell
+docker-compose run web rails new . --force --no-deps --database=postgresql \
+--webpack=react --skip-coffee
+```
+
+Add everything to git and make a new commit:
+
+```shell
+git add .
+git commit -m "Run 'docker-compose run web rails new . --force --no-deps --database=postgresql --webpack=react --skip-coffee'"
+```
+
+If you are running linux, `chown` the newly generated files and directories.
+
+Finally, re-build the `web` container so that it now includes the project dependencies:
+
+```shell
+docker-compose build web
+```
+
+### Configure the project to talk to the database container
+
+Add the following to lines to the `default` section of `config.database.yml`:
+
+```yaml
+  host: db
+  username: postgres
+```
+
+Make a commit:
+
+```shell
+git add .
+git commit -m "Configure the project to talk to the database container"
+```
+
+### Create the development and test databases
+
+```shell
+docker-compose run web rails db:create
+```
+
+If you encounter permission errors in this step, try `chown` the current directory or run `docker-compose up`.
+
+### Install frontend dependencies
+
+Add frontend packages with `yarn`:
+
+```shell
+docker-compose run web yarn add react-router-dom bootstrap jquery popper.js
+```
+
+This will add corresponding packages in `package.json` and `yarn.lock`.
+
+Commit the changes and rebuild the image
+
+```shell
+docker-compose build web
+```
+
+### Start the development server
+
+```
+docker-compose up
+```
+
+At this point you *should* be able to access the “Yay! You’re on Rails!” page via [http://localhost:3000](http://localhost:3000/).
+
+
+
+
+### Other
 
 To start afresh, destroy the scaffold using -  
 `
 rails destroy scaffold User
 `
+Steps to create the models - 
+```
+rails g model user email:string password_digest:string first_name:string last_name:string
+
+rails g model comment content:string username:string parent_id:integer
+
+rails g model event host_name:string location_name:string street_address:string start_time:datetime end_time:datetime title:string description:string
+
+rails g model invite message:string guest_email:string
+
+rails g model rsvp response:string num_guests:integer guest_name:string
+```  
 
 To create a new migration file  
-`rails g migration AddAssociations user:references`  
+`
+rails g migration AddAssociations
+`  
 
 After modifying the models each time, run:  
-`rails db:migrate`
+`
+rake db:migrate
+`
+
+Elastic Beanstalk  
+`
+eb create -db.engine postgres -db.i db.t3.micro -db.user u --envvars SECRET_KEY_BASE=RANDOM_SECRET --single 1337PACK
+`  

@@ -18,18 +18,21 @@ Rails.application.configure do
     config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
 
-    config.cache_store = :memory_store
-    config.public_file_server.headers = {
-      'Cache-Control' => "public, max-age=#{2.days.to_i}"
-    }
+    config.cache_store = :redis_store, "redis://#{ENV.fetch('REDIS_HOST', '169.231.185.225')}:6379/1", { expires_in: 90.minutes }
+        # {
+    #     expires_in: 1.hour,
+    #     namespace: 'cache',
+    #     redis: { host: "redis", port: 6379, db: 0 },
+    # }
   else
     config.action_controller.perform_caching = false
 
-    config.cache_store = :null_store
+    config.cache_store = :redis_cache_store, { url: 'redis://localhost:6379'}
   end
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
+  config.active_record.cache_versioning = false
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false

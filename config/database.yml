@@ -11,7 +11,8 @@
 #       Choose the win32 build.
 #       Install PostgreSQL and put its /bin directory on your path.
 #
-# Configure Using Gemfile # gem 'pg'
+# Configure Using Gemfile
+# gem 'pg'
 #
 default: &default
   adapter: postgresql
@@ -33,7 +34,7 @@ development:
   #username: app
 
   # The password associated with the postgres role (username).
-  #password:
+  # password: mysecretpassword
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -59,6 +60,7 @@ development:
 test:
   <<: *default
   database: app_test
+  #password: mysecretpassword
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -82,8 +84,7 @@ test:
 production:
   <<: *default
   database: <%= ENV['RDS_DB_NAME'] %>
-  host:  <%= ENV['RDS_HOSTNAME'] %>
-  username:  <%= ENV['RDS_USERNAME'] %>
-  port:  <%= ENV['RDS_PORT'] %>
+  host: <%= ENV['RDS_HOSTNAME'] %>
   password: <%= ENV['RDS_PASSWORD'] %>
-
+  port: <%= ENV['RDS_PORT'] %>
+  username: <%= ENV['RDS_USERNAME'] %>
