@@ -1,0 +1,434 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/local/Cellar/tsung/1.7.0/share/tsung/tsung-1.0.dtd" [] >
+<tsung loglevel="notice">
+  <!--  Client side setup  -->
+  <clients>
+    <client host="localhost" use_controller_vm="true" maxusers="15000"/>
+  </clients>
+  <!--  Server side setup  -->
+  <servers>
+    <server host="localhost" port="3000" type="tcp"/>
+  </servers>
+  <load>
+    <arrivalphase phase="1" duration="60" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="1" unit="second"/>
+    </arrivalphase>
+    <arrivalphase phase="2" duration="60" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="4" unit="second"/>
+    </arrivalphase>
+
+    <arrivalphase phase="3" duration="60" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="8" unit="second"/>
+    </arrivalphase>
+    <!--
+    <arrivalphase phase="4" duration="60" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="16" unit="second"/>
+    </arrivalphase>
+
+    <arrivalphase phase="5" duration="60" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="32" unit="second"/>
+    </arrivalphase>
+    -->
+  </load>
+
+  <options>
+    <!--  Set connection timeout to 2 seconds  -->
+    <option name="global_ack_timeout" value="2000"/>
+    <option name="file_server" id="uid_file" value="uids.csv"/>
+  </options>
+
+  <sessions>
+
+    <session name="cache" type="ts_http" weight="1">
+      <setdynvars sourcetype="file" fileid="uid_file" delimiter="," order="iter">
+        <var name="email"/>
+        <var name="password"/>
+      </setdynvars>
+      <!--1. login
+      2. get all events(irrespective of user)
+      3. view event
+      4. rsvp-->
+      <!-- <transaction name="get_all_events">
+         <request subst="true">
+           <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+           <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+           <dyn_variable name="eid_list" jsonpath="$.[*].id"/>
+           <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                 contents="title=ghost_of_xmas_past&amp;host_name=%%_user_id%%pack&amp;location_name=blah_location&amp;street_address=home&amp;start_time=12453543443345&amp;end_time=4553656666&amp;description=25;commit=add_event for user_id: %%_user_id%%"/>
+         </request>
+       </transaction>-->
+      <transaction name="login">
+        <request subst="true">
+          <dyn_variable name="uid" jsonpath="$.uid"/>
+          <http url="/api/auth/login" method="POST" content_type="application/x-www-form-urlencoded" contents="email=%%_email%%&amp;password=%%_password%%"/>
+        </request>
+      </transaction>
+
+      <transaction name="get_all_events">
+        <request subst="true">
+          <dyn_variable name="eid" jsonpath="$.[0].id"/>
+          <http url="/api/events" method="GET"/>
+        </request>
+      </transaction>
+
+      <!--      <setdynvars sourcetype="eval" code="fun({Pid,DynVars})->-->
+      <!--      {ok,events_list}=ts_dynvars:lookup(eidlist,DynVars) end.">-->
+      <!--&lt;!&ndash;                   {ok,events_list} = ts_dynvars:lookup(eidlist,DynVars),&ndash;&gt;-->
+
+      <!--&lt;!&ndash;                   nelement = lists:nth(1,events_list),&ndash;&gt;-->
+      <!--&lt;!&ndash;                   io:format([126, $p, 126, $n, 126, $n], [nelement])end.">&ndash;&gt;-->
+      <!--        <var name="sublist" />-->
+      <!--      </setdynvars>-->
+      <!--      <thinktime random="true" value="3"/>-->
+      <!--      <setdynvars sourcetype="eval" code="fun( {Pid, DynVars} ) ->-->
+      <!--        {ok, eids} = ts_dynvars:lookup(eidlist,DynVars),-->
+      <!--        ok end.">-->
+      <!--        <var name="blah" />-->
+      <!--      </setdynvars>-->
+
+<!--      <foreach name="element" in="eidlist">-->
+        <transaction name="get_single_event">
+          <request subst="true">
+            <http url="/api/events/%%_eid%%" method="GET"/>
+          </request>
+        </transaction>
+        <thinktime value="2" random="true"/>
+
+        <transaction name="send_rsvp">
+          <request subst="true">
+            <http url="/api/events/%%_eid%%/rsvps" method="POST" version="1.1"
+                  content_type="application/x-www-form-urlencoded"
+                  contents="user_id=%%_uid%%&amp;response=yes&amp;guest_name=%%_uid%%-guest"/>
+          </request>
+        </transaction>
+
+<!--        <setdynvars sourcetype="eval" code="fun( {Pid, DynVars} ) ->-->
+<!--              io:format([126, $p, 126, $n, 126, $n],[DynVars]),-->
+<!--              ok end.">-->
+<!--          <var name="blah" />-->
+<!--        </setdynvars>-->
+
+<!--        <if var="element_iter" eq="4">-->
+<!--          <abort type="session"/>-->
+<!--        </if>-->
+
+<!--      </foreach>-->
+
+    </session>
+    <!-- ONE
+      signup : this will create a user and store the id in uid -->
+    <session name="user_event_invite_create" type="ts_http" weight="0">
+
+      <!-- generate a random number before user creation each time -->
+      <setdynvars sourcetype="random_string">
+        <var name="uid_prefix"/>
+      </setdynvars>
+
+      <setdynvars sourcetype="random_number" start="1" end="5">
+        <var name="num_invites"/>
+      </setdynvars>
+
+      <!-- create a user and store its id in uid -->
+      <transaction name="user_create_txn">
+        <request subst="true">
+          <dyn_variable name="uid" jsonpath="$.id"/>
+          <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+        </request>
+      </transaction>
+
+      <thinktime value="2" random="true"/>
+
+      <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
+      <transaction name="create_event_txn">
+        <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <dyn_variable name="eid" jsonpath="$.id"/>
+          <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;title=ghost_of_xmas_past&amp;host_name=%%_uid%%pack&amp;location_name=blah_location&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+        </request>
+      </transaction>
+      <thinktime value="2" random="true"/>
+
+      <!--
+      <setdynvars sourcetype="eval" code="fun( {Pid, DynVars} ) ->
+        io:format([126, $p, 126, $n, 126, $n], [DynVars]),
+        ok end.">
+        <var name="eid" />
+      </setdynvars>
+      -->
+      <!-- create an invite -->
+      <for var="i" from="1" to="%%_num_invites%%">
+        <transaction name="invite_create_txn">
+          <request subst="true">
+            <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+            <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+            <dyn_variable name="invite_id" jsonpath="$.id"/>
+            <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
+                  content_type="application/x-www-form-urlencoded"
+                  contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
+          </request>
+        </transaction>
+      </for>
+
+      <thinktime value="3" random="true"/>
+
+      <!-- GET events details for event with id `eid` -->
+      <transaction name="get_one_events_txn">
+        <request subst="true">
+          <http url="/api/events/%%_eid%%" method="GET"/>
+        </request>
+      </transaction>
+
+      <!-- GET all events -->
+      <transaction name="get_all_events">
+        <request>
+          <http url="/api/events" method="GET"/>
+        </request>
+      </transaction>
+
+    </session>
+
+    <!--TWO
+      simulate the events tab on the UI
+      -> signup
+      -> event create
+      -> invite create and send
+      -> rsvp(simulate it for the same user, shouldnt be a problem)
+      -> fetch event description based on the user_id
+      -> fetch all the RSVPs for that particular event
+      -> fetch list of invites sent for that event
+    -->
+    <session name="event_page_details" type="ts_http" weight="0">
+      <!-- generate a random number before user creation each time -->
+      <setdynvars sourcetype="random_number" start="1" end="100000">
+        <var name="uid_prefix"/>
+      </setdynvars>
+
+      <setdynvars sourcetype="random_number" start="1" end="5">
+        <var name="num_invites"/>
+      </setdynvars>
+
+      <!-- create a user and store its id in uid -->
+      <request subst="true">
+        <dyn_variable name="uid" jsonpath="$.id"/>
+        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+      </request>
+
+      <thinktime value="2" random="true"/>
+
+      <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
+      <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <dyn_variable name="eid" jsonpath="$.id"/>
+        <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+      </request>
+
+      <!-- create an invite -->
+      <for var="i" from="1" to="%%_num_invites%%">
+
+        <request>
+          <http url="/api/users" method="GET"/>
+        </request>
+
+        <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <dyn_variable name="invite_id" jsonpath="$.id"/>
+          <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
+                content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com"/>
+        </request>
+
+      </for>
+
+      <!--
+      RSVP to an event
+      even if we are in the context of another user, we can RSVP to the event created by this session's
+      user.
+      -->
+      <request subst="true">
+        <http url="/api/events/%%_eid%%/rsvps" method="POST" version="1.1"
+              content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%&amp;response=yes&amp;guest_name=%%_uid_prefix%%-guest"/>
+      </request>
+
+      <!-- GET all events -->
+      <request>
+        <http url="/api/events" method="GET"/>
+      </request>
+
+      <!-- view RSVPs for this event -->
+      <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <http url="/api/events/%%_eid%%/rsvps" method="GET" version="1.1"
+              content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%"/>
+      </request>
+
+      <!-- view invites sent for that event -->
+      <request subst="true">
+        <http url="/api/events/%%_eid%%/invites" method="GET" version="1.1"/>
+      </request>
+
+    </session>
+
+    <!--THREE
+    signup-browse:
+      - user sign-up (2s)
+      - a chance of creating 1~5 events (5s)
+      - browse the event list and visit a random number of events (1~5) (1s)
+      - exit
+    -->
+    <session name="signup-browse" type="ts_http" weight="0">
+
+      <!-- generate a random number to distinguish users, may want to change to random string -->
+      <setdynvars sourcetype="random_number" start="1" end="100000">
+        <var name="uid_prefix"/>
+      </setdynvars>
+
+      <!-- create a user and store its id in uid, if the email already exists, restart session -->
+      <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="restart" max_restart="5" when="match">Network response was not ok</match>
+        <dyn_variable name="uid" jsonpath="$.id"/>
+        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+      </request>
+
+      <thinktime value='2' random='true'/>
+
+      <setdynvars sourcetype="random_number" start="1" end="5">
+        <var name="e_num_to_create"/>
+        <var name="e_num_to_visit"/>
+      </setdynvars>
+
+      <for from='1' to="%%_e_num_to_create%%" incr="1" var="counter">
+        <!-- create a new event for the user with id `uid`, store the created event's id in eid -->
+        <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <dyn_variable name="eid" jsonpath="$.id"/>
+          <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=fooooobaaaaaarrahhhrrr"/>
+        </request>
+
+        <thinktime value='5' random='true'/>
+      </for>
+
+
+      <for from="1" to="%%_e_num_to_visit%%" incr="1" var="counter">
+
+        <request subst="true">
+          <dyn_variable name="eid" jsonpath="$.[0].id"/>
+          <http url="/api/events" method="GET"/>
+        </request>
+
+        <!-- GET events details for event with id `eid` -->
+        <request subst="true">
+          <http url="/api/events/%%_eid%%" method="GET"/>
+        </request>
+        <request subst="true">
+          <http url="/api/events/%%_eid%%/comments" method="GET"/>
+        </request>
+
+        <thinktime value='1' random='true'/>
+
+      </for>
+
+    </session>
+
+    <!-- FOUR
+    Signup_browse_comment:
+    - user sign-up (2s)
+
+    - visit 1~3 event (1s)
+      - browse events (1s)
+      - visit a event
+      - view comments (2s)
+      - leave a comment (5s)
+      - browse users (1s)
+      - invite 1~3 users (1s)
+    - exit
+    -->
+    <session name="signup-visit-comment-invite" type="ts_http" weight="0">
+
+      <!-- generate a random number to distinguish users, may want to change to random string -->
+      <setdynvars sourcetype="random_number" start="1" end="100000">
+        <var name="uid_prefix"/>
+      </setdynvars>
+
+      <!-- create a user and store its id in uid, if email already exists, restart session -->
+      <request subst="true">
+        <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+        <match do="restart" max_restart="5" when="match">Network response was not ok</match>
+        <dyn_variable name="uid" jsonpath="$.id"/>
+        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+      </request>
+
+      <thinktime value='2' random='true'/>
+
+      <!-- GET events and store all event ids-->
+      <setdynvars sourcetype="random_number" start="1" end="3">
+        <var name="e_num_to_view"/>
+        <var name='u_num_to_invite'/>
+      </setdynvars>
+
+      <for from="1" to="%%_e_num_to_view%%" incr="1" var="e_counter">
+        <request subst="true">
+          <dyn_variable name="eid" jsonpath="$.[0].id"/>
+          <http url="/api/events" method="GET"/>
+        </request>
+
+        <thinktime value='1' random='true'/>
+
+        <request subst="true">
+          <http url="/api/events/%%_eid%%" method="GET"/>
+        </request>
+        <request subst="true">
+          <http url="/api/events/%%_eid%%/comments" method="GET"/>
+        </request>
+
+        <thinktime value='2' random='true'/>
+
+        <request subst="true">
+          <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+          <http url="/api/events/%%_eid%%/comments" method="POST" version="1.1"
+                content_type="application/x-www-form-urlencoded"
+                contents="user_name=%%_uid%%&amp;content=HHEEELLOOOO"/>
+        </request>
+
+        <thinktime value='5' random='true'/>
+
+        <for from="1" to="%%_u_num_to_invite%%" incr="1" var="u_counter">
+
+          <request>
+            <dyn_variable name="gid" jsonpath="$.[0].id"/>
+            <http url="/api/users" method="GET"/>
+          </request>
+          <thinktime value='1' random='true'/>
+
+          <request subst="true">
+            <match do="dump" when="nomatch">HTTP/1.1 (2)\d\d</match>
+            <match do="abort_test" when="nomatch">HTTP/1.1 (2)\d\d</match>
+            <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1"
+                  content_type="application/x-www-form-urlencoded"
+                  contents="user_id=%%_gid%%pack&amp;message=WarmmmlyInvitesTofooooobaaaaaarrahhhrrr"/>
+          </request>
+          <thinktime value='1' random='true'/>
+        </for>
+      </for>
+
+    </session>
+
+  </sessions>
+</tsung>

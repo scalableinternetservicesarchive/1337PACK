@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/local/Cellar/tsung/1.7.0/share/tsung/tsung-1.0.dtd" [] >
+<tsung loglevel="notice">
+  <!--  Client side setup  -->
+  <clients>
+    <client host="localhost" use_controller_vm="true" maxusers="15000"/>
+  </clients>
+  <!--  Server side setup  -->
+  <servers>
+    <server host="localhost" port="3000" type="tcp"/>
+  </servers>
+  <load>
+    <arrivalphase phase="1" duration="10" unit="second" wait_all_sessions_end="true">
+      <users arrivalrate="1" unit="second"/>
+    </arrivalphase>
+  </load>
+
+  <options>
+    <!--  Set connection timeout to 2 seconds  -->
+    <option name="global_ack_timeout" value="2000"/>
+  </options>
+
+  <sessions>
+    <!-- signup : this will create a user and store the id in uid -->
+    <session name="user_event_invite_create" type="ts_http" weight="0">
+
+      <!-- generate a random number before user creation each time -->
+      <setdynvars sourcetype="random_number" start="1" end="100000">
+        <var name="uid_prefix"/>
+      </setdynvars>
+
+      <!-- create a user and store its id in uid -->
+      <request subst="true">
+        <dyn_variable name="uid" jsonpath="$.id"/>
+        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+      </request>
+
+
+      <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
+      <request subst="true">
+        <dyn_variable name="eid" jsonpath="$.id"/>
+        <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+      </request>
+
+      <!-- create an invite -->
+      <for var="i" from="1" to="5">
+        <request subst="true">
+          <dyn_variable name="invite_id" jsonpath="$.id"/>
+          <http url="/api/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
+        </request>
+      </for>
+
+      <!-- GET events details for event with id `eid` -->
+      <request subst="true">
+        <http url="/api/events/%%_eid%%" method="GET"/>
+      </request>
+
+      <!-- GET all events -->
+      <request>
+        <http url="/api/events" method="GET"/>
+      </request>
+
+    </session>
+
+    <session name="event_page_details" type="ts_http" weight="1">
+      <!--
+      simulate the events tab on the UI
+      -> user create
+      -> event create
+      -> invite create and send
+      -> rsvp(simulate it for the same user, shouldnt be a problem)
+      -> fetch event description based on the user_id
+      -> fetch all the RSVPs for that particular event
+      -> fetch list of invites sent for that event
+      -->
+      <!-- generate a random number before user creation each time -->
+      <setdynvars sourcetype="random_number" start="1" end="100000">
+        <var name="uid_prefix"/>
+      </setdynvars>
+
+      <!-- create a user and store its id in uid -->
+      <request subst="true">
+        <dyn_variable name="uid" jsonpath="$.id"/>
+        <http url="/api/users" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="email=%%_uid_prefix%%-hi.pack@g.com&amp;password=test_password&amp;password_confirmation=test_password&amp;first_name=hi.pack&amp;last_name=hi.lastname"/>
+      </request>
+
+      <!-- create a new event for the user with id `uid`, store the created event's id in eid-->
+      <request subst="true">
+        <dyn_variable name="eid" jsonpath="$.id"/>
+        <http url="/api/events" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%&amp;host_name=%%_uid%%pack&amp;location_name=blah&amp;street_address=home&amp;start_time=12345&amp;end_time=45666&amp;title=bday&amp;description=25;commit=add_event for user_id: %%_uid%%"/>
+      </request>
+
+      <!-- create an invite -->
+      <for var="i" from="1" to="5">
+        <request subst="true">
+          <dyn_variable name="invite_id" jsonpath="$.id"/>
+          <http url="/api/events/%%_eid%%/invites" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+                contents="user_id=%%_uid%%&amp;message=please_come! to the event: %%_eid%% invite_number: %%_i%%&amp;guest_email=%%_uid_prefix%%-hi.pack-guest@g.com&amp;event_id=%%_eid%%"/>
+        </request>
+      </for>
+
+      <!-- RSVP to an event
+      even if we are in the context of another user, we can RSVP to the event created by this session's
+      user.
+      -->
+      <request subst="true">
+        <http url="/api/events/%%_eid%%/rsvps" method="POST" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%&amp;response=yes&amp;guest_name=%%_uid_prefix%%-guest"/>
+      </request>
+
+      <!-- GET all events -->
+      <request>
+        <http url="/api/events" method="GET"/>
+      </request>
+
+      <!-- view RSVPs for this event -->
+      <request subst="true">
+        <http url="/api/events/%%_eid%%/rsvps" method="GET" version="1.1" content_type="application/x-www-form-urlencoded"
+              contents="user_id=%%_uid%%"/>
+      </request>
+
+      <!-- view invites sent for that event -->
+      <request>
+        <http url="/api/events/%%_eid%%/invites" method="GET" />
+      </request>
+
+    </session>
+  </sessions>
+</tsung>
